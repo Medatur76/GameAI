@@ -1,0 +1,7 @@
+[meta]
+name = "Realtime Car Data"
+author = "Medaturd76"
+category = "Recording"
+
+[script]
+dependencies = [ "PlayerState" ]
