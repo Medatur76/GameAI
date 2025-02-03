@@ -1,7 +1,8 @@
 void respond(Net::Socket@ conn)
 {
     PlayerState::sTMData@ TMData = PlayerState::GetRaceData();
-    conn.Write("{ \"speed\": " + TMData.dPlayerInfo.Speed + ", \"status\": \"success\" }");
+    auto PlayerInfo = TMData.dPlayerInfo;
+    conn.Write("{ \"status\": \"success\", \"speed\": " + PlayerInfo.Speed + ", \"position\": { \"x\": \"" + PlayerInfo.Position.x + "\", \"y\": \"" + PlayerInfo.Position.y + "\", \"z\": \"" +  PlayerInfo.Position.z + "\" } }");
 }
 
 void Main() {
