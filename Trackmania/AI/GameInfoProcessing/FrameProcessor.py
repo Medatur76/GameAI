@@ -7,7 +7,7 @@ import numpy as np
 import threading
 import os
 
-time.sleep(10)
+#time.sleep(10)
 
 def takePhoto(w: str, f: int=-1):
     window: gw.Win32Window = gw.getWindowsWithTitle(w)[0]
@@ -74,4 +74,4 @@ def video(w: str, t=10):
     video_writer.release()
     print("Video file saved as", output_file)
 
-video("Trackmania")
+#video("Trackmania")

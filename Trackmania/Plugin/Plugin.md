@@ -28,7 +28,12 @@ We begin in the ``Main()`` function by defining the server as a ``Net::Socket`` 
 void respond(Net::Socket@ conn)
 {
     PlayerState::sTMData@ TMData = PlayerState::GetRaceData();
-    conn.Write("{ \"status\": \"success\", \"speed\": " + PlayerInfo.Speed + ", \"position\": { \"x\": \"" + PlayerInfo.Position.x + "\", \"y\": \"" + PlayerInfo.Position.y + "\", \"z\": \"" +  PlayerInfo.Position.z + "\" } }");
+    auto PlayerInfo = TMData.dPlayerInfo;
+    float distance = 0.0;
+    if (lastPos is null) distance = Math.sqrt((PlayerInfo.Position.x)**2+(PlayerInfo.Position.y)**2);
+    else distance = Math.sqrt((PlayerInfo.Position.x-lastPos.x)**2+(PlayerInfo.Position.y-lastPos.y)**2);
+    lastPos = PlayerInfo.Position;
+    conn.Write("{ \"running\": \"" + running + "\", \"speed\": " + PlayerInfo.Speed + ", \"last_distanced_traveled\": \"" + distance + "\", \"end\": \"" + TMData.dEventInfo.EndRun + "\" }");
 }
 
 void Main() {
