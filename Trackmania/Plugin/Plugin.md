@@ -28,7 +28,7 @@ We begin in the ``Main()`` function by defining the server as a ``Net::Socket`` 
 void respond(Net::Socket@ conn)
 {
     PlayerState::sTMData@ TMData = PlayerState::GetRaceData();
-    conn.Write("{ \"speed\": " + TMData.dPlayerInfo.Speed + ", \"status\": \"success\" }");
+    conn.Write("{ \"status\": \"success\", \"speed\": " + PlayerInfo.Speed + ", \"position\": { \"x\": \"" + PlayerInfo.Position.x + "\", \"y\": \"" + PlayerInfo.Position.y + "\", \"z\": \"" +  PlayerInfo.Position.z + "\" } }");
 }
 
 void Main() {
