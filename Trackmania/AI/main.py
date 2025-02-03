@@ -6,4 +6,4 @@ from ActivationClasses.Sigmoid import SigmoidActivation
 # 15 - Distance
 # 1 - Speed
 
-nn = Training.genTrain(10, [BinaryStepActivation, BinaryStepActivation, SigmoidActivation, SigmoidActivation])
+nn = Training.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation])

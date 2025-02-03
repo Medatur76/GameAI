@@ -1,6 +1,7 @@
 from Inputs import getInputs
 from ActivationClasses.Activation import Activation
 from NeuralClasses.NeuralNetwork import NeuralNetwork
+import pyautogui
 
 class Training():
     def genTrain(n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 100):
@@ -13,14 +14,16 @@ class Training():
                 runCompleted = False
                 while not runCompleted:
                     output = ai.forward(getInputs())
-                    # Accelerate
-                    # somethin output[0]
-                    # Brake
-                    # somethin output[1]
-                    # Left
-                    # somethin output[2]
-                    # Right
-                    # somethin output[3]
+                    if not n_output_activations == None:
+                        for i in range(n_output_activations):
+                            output[i] = n_output_activations[i].forward(output[i])
+                    keys = []
+                    if output[0] == 1: keys.append('w')
+                    if output[1] == 1: keys.append('s')
+                    if output[2] == 1: keys.append('a')
+                    if output[3] == 1: keys.append('d')
+
+                    if not keys == []: pyautogui.press(keys)
         pass
     def train(self, n_inputs: int, n_layers: int, n_outputs: int, n_output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
         """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than 0. Will try back propagation to make good adjustments it the reward is good."""
