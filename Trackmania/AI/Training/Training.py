@@ -14,9 +14,9 @@ class Training():
                 runCompleted = False
                 while not runCompleted:
                     output = ai.forward(getInputs())
-                    if not n_output_activations == None:
-                        for i in range(n_output_activations):
-                            output[i] = n_output_activations[i].forward(output[i])
+                    #if not n_output_activations == None:
+                    #    for i in range(n_output_activations):
+                    #        output[i] = n_output_activations[i].forward(output[i])
                     keys = []
                     if output[0] == 1: keys.append('w')
                     if output[1] == 1: keys.append('s')
