@@ -1,12 +1,12 @@
 from Training.Inputs import getInputs
 from ActivationClasses.Activation import Activation
 from NeuralClasses.NeuralNetwork import NeuralNetwork
-import pyautogui, time, win32con, win32api
+import pyautogui, time#, win32con, win32api
 
-def press_key(key):
+'''def press_key(key):
     win32api.keybd_event(key, 0, 0, 0)
     time.sleep(0.1)  # Adjust the sleep duration as needed
-    win32api.keybd_event(key, 0, win32con.KEYEVENTF_KEYUP, 0)
+    win32api.keybd_event(key, 0, win32con.KEYEVENTF_KEYUP, 0)'''
 
 class Training():
     def genTrain(n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 1):
@@ -16,15 +16,16 @@ class Training():
         nOutputs = 4
         if not n_output_activations == None: nOutputs = len(n_output_activations)
         bestNetworks = [NeuralNetwork(16, n_layers, nOutputs, n_output_activations, base_activation) for _ in range(ais*100)]
-        #pyautogui.press("del")
-        press_key(win32con.VK_DELETE)
+        pyautogui.press("del")
+        #press_key(win32con.VK_DELETE)
         for g in range(generations):
             scores: list[float] = []
             for ai in bestNetworks:
+                end_time = time.time() + 30 + g*5
                 ai.train(0.05/(g+1))
                 runCompleted = False
                 score: float = 0.0
-                while not runCompleted:
+                while not runCompleted and time.time() < end_time:
                     inputs, gameData = getInputs()
                     if gameData[1]:
                         score += 100
@@ -33,32 +34,33 @@ class Training():
                     output = ai.forward(inputs)
                     keys = []
                     if output[0] == 1: 
-                        #keys.append('w')
-                        press_key(0x57)
+                        keys.append('w')
+                        #press_key(0x57)
                     if output[1] == 1: 
-                        #keys.append('s')
-                        press_key(0x53)
+                        keys.append('s')
+                        #press_key(0x53)
                     if output[2] == 1: 
-                        #keys.append('a')
-                        press_key(0x41)
+                        keys.append('a')
+                        #press_key(0x41)
                     if output[3] == 1: 
-                        #keys.append('d')
-                        press_key(0x44)
+                        keys.append('d')
+                        #press_key(0x44)
 
                     if not keys == []: pyautogui.press(keys)
 
                     score += gameData[0]
-                scores.append(score)
-                #pyautogui.press("del")
-                press_key(0x2E)
-            #pyautogui.press("r")
-            press_key(0x52)
-            #pyautogui.press("up")
-            press_key(win32con.VK_UP)
-            #pyautogui.press("enter")
-            press_key(0x0D)
-            #pyautogui.press("enter")
-            press_key(0x0D)
+                _, finalData = getInputs()
+                scores.append(score + finalData[0])
+                pyautogui.press("del")
+                #press_key(0x2E)
+            pyautogui.press("r")
+            #press_key(0x52)
+            pyautogui.press("up")
+            #press_key(win32con.VK_UP)
+            pyautogui.press("enter")
+            #press_key(0x0D)
+            pyautogui.press("enter")
+            #press_key(0x0D)
             sortedAis = [ai for _, ai in sorted(zip(scores, bestNetworks))]
             bestNetworks.clear()
             returnedAis: int = ((len(sortedAis)*5)/100)
