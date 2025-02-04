@@ -1,10 +1,11 @@
 from ActivationClasses.Activation import Activation
+import numpy as np
 
 class BinaryStepActivation(Activation):
-    def forward(self, inputs):
-        if len(inputs) == 1:
+    def forward(inputs):
+        if isinstance(inputs, np.float64) or len(inputs) == 1:
             output = 0
-            if i > 0: output = 1
+            if inputs > 0: output = 1
             return output
         else:
             outputs: list[int] = []

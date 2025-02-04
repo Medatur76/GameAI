@@ -1,3 +1,3 @@
 class Activation():
-    def forward(self, inputs):
+    def forward(inputs):
         return inputs

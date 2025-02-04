@@ -2,7 +2,7 @@ from ActivationClasses.Activation import Activation
 import math
 
 class SigmoidActivation(Activation):
-    def forward(self, inputs):
+    def forward(inputs):
         if not isinstance(inputs, list):
             return 1/(1+math.e**inputs)
         if len(inputs) == 1:
