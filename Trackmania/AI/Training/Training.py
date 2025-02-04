@@ -1,16 +1,13 @@
 from Training.Inputs import getInputs
 from ActivationClasses.Activation import Activation
 from NeuralClasses.NeuralNetwork import NeuralNetwork
-import time#, win32con, win32api
+import time
 from xdo import Xdo
 
 def press_key(keys: list[str], id: int, xdo: Xdo):
     if (keys is str): keys = [keys]
     xdo.send_keysequence_window_down(id, keys)
     xdo.send_keysequence_window_up(id, keys)
-    '''win32api.keybd_event(key, 0, 0, 0)
-    time.sleep(0.1)  # Adjust the sleep duration as needed
-    win32api.keybd_event(key, 0, win32con.KEYEVENTF_KEYUP, 0)'''
 
 class Training():
     def genTrain(n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 1):
@@ -64,8 +61,8 @@ class Training():
                     bestNetworks.append(n)
         return bestNetworks[0]
 
-    def train(self, n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
-        """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than 0. Will try back propagation to make good adjustments it the reward is good."""
+    def train(n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
+        """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than the last reward. Will try back propagation to make good adjustments it the reward is good."""
         while not getInputs()[1][2]: time.sleep(0.1)
         xdo = Xdo()
         win_id = xdo.get_active_window()
