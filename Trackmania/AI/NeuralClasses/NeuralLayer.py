@@ -29,5 +29,10 @@ class NeuralLayer():
 
         else: self.output = np.dot(inputs, self.weights) + self.biases
     def train(self, m: float = 0.05):
+        self.pWeights = self.weights.copy()
+        self.pBiases = self.biases.copy()
         self.weights += m * np.random.randn(self.nInputs, self.nOutputs)
         self.biases += m * np.random.randn(1, self.nOutputs)
+    def revert(self):
+        self.weights = self.pWeights.copy()
+        self.biases = self.pBiases.copy()
