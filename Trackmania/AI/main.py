@@ -2,20 +2,26 @@ from Training.Training import *
 from ActivationClasses.BinaryStep import *
 from ActivationClasses.Sigmoid import *
 from Training.Inputs import *
-from xdo import Xdo
+import pydirectinput
 
-def press_key(keys: list[str], id: int, xdo: Xdo):
-    if (keys is str): keys = [keys]
-    xdo.send_keysequence_window_down(id, keys)
-    xdo.send_keysequence_window_up(id, keys)
+
+nextUpKeys: list[str] = []
+
+def pressKeys(keys: list[str]):
+    for key in nextUpKeys:
+        pydirectinput.keyUp(key)
+    nextUpKeys.clear()
+    for key in keys:
+        pydirectinput.keyDown(key)
+    nextUpKeys = keys.copy()
 
 # Inputs:
 # 15 - Distance
 # 1 - Speed
 
-bestRacer = Training.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation])
-xdo = Xdo()
-win_id = xdo.get_active_window()
+training = Training()
+
+bestRacer = training.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3, ais=1)
 while getInputs()[1][2] and not getInputs()[1][1]:
     data, _ = getInputs()
 
@@ -26,4 +32,4 @@ while getInputs()[1][2] and not getInputs()[1][1]:
     if output[2] == 1: keys.append('a')
     if output[3] == 1: keys.append('d')
 
-    if not keys == []: press_key(keys, win_id, xdo)
+    if not keys == []: pressKeys(keys)

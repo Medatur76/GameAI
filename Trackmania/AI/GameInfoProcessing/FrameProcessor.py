@@ -1,4 +1,4 @@
-import pygetwindow as gw
+import pywinctl as gw
 import pyautogui
 import time
 import math
@@ -75,3 +75,4 @@ def video(w: str, t=10):
     print("Video file saved as", output_file)
 
 #video("Trackmania")
+#takePhoto("Trackmania", 1)

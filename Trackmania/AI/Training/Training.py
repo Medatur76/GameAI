@@ -1,35 +1,56 @@
 from Training.Inputs import getInputs
 from ActivationClasses.Activation import Activation
 from NeuralClasses.NeuralNetwork import NeuralNetwork
-import time
-from xdo import Xdo
+import time, pydirectinput
 
-def press_key(keys: list[str], id: int, xdo: Xdo):
-    if (keys is str): keys = [keys]
-    xdo.send_keysequence_window_down(id, keys)
-    xdo.send_keysequence_window_up(id, keys)
+def seqPressKeys(keys: list[str]):
+        for key in keys:
+            pydirectinput.press(key)
 
 class Training():
-    def genTrain(n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 1):
-        """Trains the AI by running a number of random neural networks (the ais input times 100) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 100, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
+    nextUpKeys: list[str] = []
+    def pressKeys(self, keys: list[str]):
+        for key in self.nextUpKeys:
+            pydirectinput.keyUp(key)
+        self.nextUpKeys.clear()
+        for key in keys:
+            pydirectinput.keyDown(key)
+        self.nextUpKeys = keys.copy()
+    def genTrain(self, n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 4):
+        """Trains the AI by running a number of random neural networks (the ais input times 20) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 20, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
+        print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
-        xdo = Xdo()
-        win_id = xdo.get_focused_window()
-        bestNetworks = [NeuralNetwork(16, n_layers, 4, n_output_activations, base_activation) for _ in range(ais*100)]
-        press_key('del', win_id, xdo)
+        print("Started!")
+        bestNetworks = [NeuralNetwork(16, n_layers, 4, n_output_activations, base_activation) for _ in range(ais*20)]
+        pydirectinput.press('del')
         for g in range(generations):
             scores: list[float] = []
             for ai in bestNetworks:
-                end_time = time.time() + 30 + g*5
+                end_time = time.time() + 15
+                possibleEnd = False
+                endTicks = 0
                 ai.train(0.05/(g+1))
                 runCompleted = False
                 score: float = 0.0
-                while not runCompleted and time.time() < end_time:
+                lastSpeed = 0
+                while not runCompleted and time.time() < end_time and not possibleEnd:
                     inputs, gameData = getInputs()
                     if gameData[1]:
                         score += 100
                         runCompleted = True
                         continue
+                    if inputs[15].__round__() == 0:
+                        if endTicks <= 15:
+                            endTicks += 1
+                        else:
+                            possibleEnd = True
+                    else:
+                        endTicks = 0
+                    if gameData[3] < 10:
+                        possibleEnd = True
+
+                    if inputs[15] > lastSpeed:
+                        score += (inputs[15] - lastSpeed)
                     output = ai.forward(inputs)
                     keys = []
                     if output[0] == 1: 
@@ -41,31 +62,28 @@ class Training():
                     if output[3] == 1: 
                         keys.append('d')
 
-                    if not keys == []: press_key(keys, win_id, xdo)
+                    if not keys == []: self.pressKeys(keys)
 
                     score += gameData[0]
                 _, finalData = getInputs()
                 scores.append(score + finalData[0])
-                press_key('del', win_id, xdo)
-            press_key('r', win_id, xdo)
-            press_key('up', win_id, xdo)
-            press_key('enter', win_id, xdo)
-            press_key('enter', win_id, xdo)
+                pydirectinput.press('del')
+            pydirectinput.press(['r', 'up', 'up', 'down'])
+            pydirectinput.typewrite("_" + str(g))
+            pydirectinput.press(['down', 'enter', 'enter'])
             sortedAis = [ai for _, ai in sorted(zip(scores, bestNetworks))]
             bestNetworks.clear()
             returnedAis: int = ((len(sortedAis)*5)/100)
-            multiplesOfAi: int = 100/returnedAis
+            multiplesOfAi: int = (100/returnedAis)
             bestNetworks5 = sortedAis[:returnedAis].copy()
             for n in bestNetworks5:
                 for _ in range(multiplesOfAi):
                     bestNetworks.append(n)
         return bestNetworks[0]
 
-    def train(n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
+    def train(self, n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
         """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than the last reward. Will try back propagation to make good adjustments it the reward is good."""
         while not getInputs()[1][2]: time.sleep(0.1)
-        xdo = Xdo()
-        win_id = xdo.get_active_window()
         nn = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
         lastScore = 0
         for r in range(runs):

@@ -1,9 +1,14 @@
-# client example
+import pyautogui, time, pydirectinput
 
-from xdo import Xdo
+time.sleep(5)
 
-def press_key(keys: list[str], id: int, xdo: Xdo):
-    xdo.send_keysequence_window(id, keys)
+#pydirectinput.keyDown('s')
+#pydirectinput.keyDown('d')
+#time.sleep(0.1)
+#pydirectinput.keyUp('s')
+#pydirectinput.keyUp('d')
 
-xdo = Xdo()
-press_key(['w', 'a', 's', 'd'], xdo.get_active_window(), xdo)
+pydirectinput.press(['w', 'd', 's'])
+
+pydirectinput.press('del')
+pydirectinput.press(['r', 'up', 'enter', 'enter'])
