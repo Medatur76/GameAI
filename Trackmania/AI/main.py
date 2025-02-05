@@ -21,7 +21,7 @@ def pressKeys(keys: list[str]):
 
 training = Training()
 
-bestRacer = training.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3, ais=1)
+bestRacer = training.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
 while getInputs()[1][2] and not getInputs()[1][1]:
     data, _ = getInputs()
 

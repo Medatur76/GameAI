@@ -9,6 +9,10 @@ def seqPressKeys(keys: list[str]):
 
 class Training():
     nextUpKeys: list[str] = []
+    currentGen = 1
+    currentAI = 1
+    def getAIG(self):
+        return [self.currentGen, self.currentAI]
     def pressKeys(self, keys: list[str]):
         for key in self.nextUpKeys:
             pydirectinput.keyUp(key)
@@ -16,17 +20,20 @@ class Training():
         for key in keys:
             pydirectinput.keyDown(key)
         self.nextUpKeys = keys.copy()
-    def genTrain(self, n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 4):
-        """Trains the AI by running a number of random neural networks (the ais input times 20) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 20, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
+    def genTrain(self, n_layers: int, n_output_activations: list[Activation], base_activation: Activation=Activation, generations: int=1, ais: int = 1):
+        """Trains the AI by running a number of random neural networks (the ais input times 100) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 100, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
         print("Started!")
-        bestNetworks = [NeuralNetwork(16, n_layers, 4, n_output_activations, base_activation) for _ in range(ais*20)]
+        bestNetworks = [NeuralNetwork(16, n_layers, 4, n_output_activations, base_activation) for _ in range(ais*100)]
         pydirectinput.press('del')
         for g in range(generations):
+            self.currentGen = g+1
             scores: list[float] = []
-            for ai in bestNetworks:
-                end_time = time.time() + 15
+            for n in range(len(bestNetworks)):
+                self.currentAI = n+1
+                ai = bestNetworks[n]
+                end_time = time.time() + 20
                 possibleEnd = False
                 endTicks = 0
                 ai.train(0.05/(g+1))
@@ -47,6 +54,7 @@ class Training():
                     else:
                         endTicks = 0
                     if gameData[3] < 10:
+                        score -= 100
                         possibleEnd = True
 
                     if inputs[15] > lastSpeed:
@@ -73,8 +81,8 @@ class Training():
             pydirectinput.press(['down', 'enter', 'enter'])
             sortedAis = [ai for _, ai in sorted(zip(scores, bestNetworks))]
             bestNetworks.clear()
-            returnedAis: int = ((len(sortedAis)*5)/100)
-            multiplesOfAi: int = (100/returnedAis)
+            returnedAis: int = ((len(sortedAis)*5)/100).__round__()
+            multiplesOfAi: int = (100/returnedAis).__round__()
             bestNetworks5 = sortedAis[:returnedAis].copy()
             for n in bestNetworks5:
                 for _ in range(multiplesOfAi):
