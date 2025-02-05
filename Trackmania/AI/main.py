@@ -8,9 +8,6 @@ def press_key(keys: list[str], id: int, xdo: Xdo):
     if (keys is str): keys = [keys]
     xdo.send_keysequence_window_down(id, keys)
     xdo.send_keysequence_window_up(id, keys)
-    '''win32api.keybd_event(key, 0, 0, 0)
-    time.sleep(0.1)  # Adjust the sleep duration as needed
-    win32api.keybd_event(key, 0, win32con.KEYEVENTF_KEYUP, 0)'''
 
 # Inputs:
 # 15 - Distance
