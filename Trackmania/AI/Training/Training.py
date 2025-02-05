@@ -47,7 +47,7 @@ class Training():
                         runCompleted = True
                         continue
                     if inputs[15].__round__() == 0:
-                        if endTicks <= 15:
+                        if endTicks <= 30:
                             endTicks += 1
                         else:
                             possibleEnd = True

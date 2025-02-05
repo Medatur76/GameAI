@@ -9,3 +9,6 @@ class SigmoidActivation(Activation):
             return 1/(1+math.e**inputs[0])
         else:
             return [1/(1+math.e**i) for i in inputs]
+        
+    def toString():
+        return "Sigmoid"

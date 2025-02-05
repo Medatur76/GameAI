@@ -14,3 +14,5 @@ class BinaryStepActivation(Activation):
                 if i > 0: output = 1
                 outputs.append(output)
             return outputs
+    def toString():
+        return "BinaryStep"
