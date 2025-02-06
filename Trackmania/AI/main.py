@@ -31,9 +31,12 @@ if fileExisis:
     if choose == 1:
         bestRacer = NeuralNetwork.fromFile(json.load(open("Racer.nn", 'r')))
     elif choose == 2:
-        bestRacer = Training().genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
+        bestRacer = Training().genTrain(generations=3, preset="Yosh")
 else:
-    bestRacer = Training().genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
+    #bestRacer = Training().genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
+    bestRacer = Training().genTrain(generations=3, preset="Yosh")
+bestRacer.save()
+while not getInputs()[1][2]: time.sleep(0.1)
 while getInputs()[1][2] and not getInputs()[1][1]:
     data, _ = getInputs()
 
@@ -45,5 +48,3 @@ while getInputs()[1][2] and not getInputs()[1][1]:
     if output[3] == 1: keys.append('d')
 
     if not keys == []: pressKeys(keys)
-
-bestRacer.save()
