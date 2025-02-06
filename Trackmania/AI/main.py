@@ -33,7 +33,6 @@ if fileExisis:
     elif choose == 2:
         bestRacer = Training().genTrain(generations=3, preset="Yosh")
 else:
-    #bestRacer = Training().genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
     bestRacer = Training().genTrain(generations=3, preset="Yosh")
 bestRacer.save()
 while not getInputs()[1][2]: time.sleep(0.1)
