@@ -1,11 +1,13 @@
 from ActivationClasses.Activation import Activation
 from ActivationClasses.BinaryStep import BinaryStepActivation
 from ActivationClasses.Sigmoid import SigmoidActivation
+from ActivationClasses.HyperbolicTanget import HyperTangActivation
 import numpy as np
 
 def activationFromString(string: str):
     if string == "BinaryStep": return BinaryStepActivation()
     elif string == "Sigmoid": return SigmoidActivation()
+    elif string == "Hyperbolic": return HyperTangActivation()
     else: return Activation()
 
 class NeuralLayer():

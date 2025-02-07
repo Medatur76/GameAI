@@ -14,6 +14,11 @@ class Training():
     def getAIG(self):
         return [self.currentGen, self.currentAI]
     def pressKeys(self, keys: list[str]):
+        for key in keys:
+            try:
+                self.nextUpKeys.remove(key)
+            except:
+                pass
         for key in self.nextUpKeys:
             pydirectinput.keyUp(key)
         self.nextUpKeys.clear()
@@ -25,12 +30,6 @@ class Training():
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
         print("Started!")
-        # USING BEGINING CAR ROTATION
-        # Z runs foward and back
-        # X runs side to side
-        # We want Z to go up
-        # As soon as the car passes X 770 (The x is below 770) we want Z to go down
-        # As soon as the car passes X 643 (The X is below 643) we want Z to go up
         if preset == None: bestNetworks = [NeuralNetwork(16, n_layers, 4, n_output_activations, base_activation) for _ in range(ais*100)]
         else: bestNetworks = [NeuralNetwork.fromPreset(preset) for _ in range(ais*100)]
         pydirectinput.press('del')
@@ -52,7 +51,7 @@ class Training():
                     inputs, gameData = getInputs()
                     position: list[float] = gameData[0]
                     if gameData[1]:
-                        score += 1000000
+                        score += 1000
                         runCompleted = True
                         continue
                     if inputs[15].__round__() == 0:
@@ -63,7 +62,7 @@ class Training():
                     else:
                         endTicks = 0
                     if position[1] < 10:
-                        score = -1000000
+                        score -= 1000000
                         possibleEnd = True
 
                     if position[0] > 770 or position[0] < 643:
@@ -100,7 +99,7 @@ class Training():
                 for _ in range(multiplesOfAi):
                     bestNetworks.append(n)
             input("Please enter anything to confirm that the next generation can go!")
-            time.sleep(5)
+            time.sleep(10)
         return bestNetworks[0]
 
     def train(self, n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
@@ -108,22 +107,42 @@ class Training():
         while not getInputs()[1][2]: time.sleep(0.1)
         nn = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
         lastScore = 0
+        pydirectinput.press('del')
         for r in range(runs):
-            press_key('del', win_id, xdo)
-            lastSpeed = 0
-            end_time = time.time() + 15 + r*5
-            nn.train(0.05)
+            end_time = time.time() + 23
+            possibleEnd = False
+            endTicks = 0
+            nn.train(0.5)
             runCompleted = False
             score: float = 0.0
-            while not runCompleted and time.time() < end_time:
+            lastSpeed = 0
+            lastZ = getInputs()[1][0][2]
+            while not runCompleted and time.time() < end_time and not possibleEnd:
                 inputs, gameData = getInputs()
+                position: list[float] = gameData[0]
                 if gameData[1]:
-                    score += 100
+                    score += 1000
                     runCompleted = True
                     continue
-                if (inputs[15] > lastSpeed):
-                    score += (inputs[15]-lastSpeed)/10
-                    lastSpeed = inputs[15]
+                if inputs[15].__round__() == 0:
+                    if endTicks <= 10:
+                        endTicks += 1
+                    else:
+                        possibleEnd = True
+                else:
+                    endTicks = 0
+                if position[1] < 10:
+                    score -= 1000000
+                    possibleEnd = True
+
+                if position[0] > 770 or position[0] < 643:
+                    score += (position[2] - lastZ)*2
+                else:
+                    score += (lastZ - position[2])*2
+                lastZ = position[2]
+
+                if inputs[15] > lastSpeed:
+                    score += (inputs[15] - lastSpeed)
                 output = nn.forward(inputs)
                 keys = []
                 if output[0] == 1: 
@@ -135,11 +154,11 @@ class Training():
                 if output[3] == 1: 
                     keys.append('d')
 
-                if not keys == []: press_key(keys, win_id, xdo)
-
-                score += gameData[0]
-            _, finalData = getInputs()
-            score += finalData[0]
+                if not keys == []: self.pressKeys(keys)
+            pydirectinput.press(['r', 'up', 'up', 'down'])
+            time.sleep(0.1)
+            pydirectinput.typewrite(str(r))
+            pydirectinput.press(['down', 'enter', 'enter', 'del'])
             if (score > lastScore): lastScore = score
             else: nn.revert()
         return nn

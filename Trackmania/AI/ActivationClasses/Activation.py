@@ -1,5 +1,5 @@
 class Activation():
     def forward(inputs):
         return inputs
-    def toString():
+    def toString() -> str:
         return "Activation"

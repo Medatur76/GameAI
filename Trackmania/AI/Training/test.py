@@ -1,1 +1,1 @@
-print(open("Racer.nn", 'r'))
+print([1] > 0)

@@ -3,7 +3,7 @@ import numpy as np
 
 class BinaryStepActivation(Activation):
     def forward(inputs):
-        if isinstance(inputs, np.float64) or len(inputs) == 1:
+        if not isinstance(inputs, list):
             output = 0
             if inputs > 0: output = 1
             return output
