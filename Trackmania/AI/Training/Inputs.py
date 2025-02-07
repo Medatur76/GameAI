@@ -1,5 +1,5 @@
 from GameInfoProcessing.FrameProcessor import takePhoto
-import socket, json
+import socket, json, time
 
 def getInputs():
     output: list[float] = takePhoto("Trackmania")
@@ -10,10 +10,9 @@ def getInputs():
     jsonData = json.loads(data.decode('utf8'))
     output.append(float(jsonData["speed"]))
     gameData: list = []
-    gameData.append(float(jsonData["last_distanced_traveled"]))
+    gameData.append(jsonData["position"])
     if (jsonData["end"] == "true"): gameData.append(True)
     else: gameData.append(False)
     if (jsonData["running"] == "true"): gameData.append(True)
     else: gameData.append(False)
-    gameData.append(float(jsonData["y-pos"]))
     return output, gameData

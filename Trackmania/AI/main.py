@@ -22,7 +22,7 @@ def pressKeys(keys: list[str]):
 bestRacer: NeuralNetwork
 fileExisis: bool
 try:
-    open("Racer.nn", "r+t")
+    open("Racer.nn", "r")
     fileExisis = True
 except:
     fileExisis = False
@@ -31,10 +31,10 @@ if fileExisis:
     if choose == 1:
         bestRacer = NeuralNetwork.fromFile(json.load(open("Racer.nn", 'r')))
     elif choose == 2:
-        bestRacer = Training().genTrain(generations=3, preset="Yosh")
+        bestRacer = Training().genTrain(generations=4, preset="Yosh")
 else:
     #bestRacer = Training().genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
-    bestRacer = Training().genTrain(generations=3, preset="Yosh")
+    bestRacer = Training().genTrain(generations=4, preset="Yosh")
 bestRacer.save()
 while not getInputs()[1][2]: time.sleep(0.1)
 while getInputs()[1][2] and not getInputs()[1][1]:
