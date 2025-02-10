@@ -42,7 +42,7 @@ class Training():
                 end_time = time.time() + 23
                 possibleEnd = False
                 endTicks = 0
-                ai.train(0.5-(g/25))
+                ai.train((g*0.5)/(1400/generations))
                 runCompleted = False
                 score: float = 0.0
                 lastSpeed = 0
@@ -56,7 +56,7 @@ class Training():
                         inputs, gameData = lastInputs, lastGameData
                     position: list[float] = gameData[0]
                     if gameData[1]:
-                        score += 1000
+                        score += 1000000
                         runCompleted = True
                         continue
                     if inputs[15].__round__() == 0:
