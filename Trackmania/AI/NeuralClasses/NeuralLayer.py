@@ -16,12 +16,12 @@ class NeuralLayer():
         if data["activations"] == "None":
             layer = nl(True, data["n_inputs"], data["n_outputs"], activationFromString(data["activation"]), None)
             layer.weights = np.array(data["weights"])
-            layer.biases = np.array(data["biases"])
+            layer.biases = np.array([data["biases"]])
             return layer
         else:
             layer = nl(True, data["n_inputs"], data["n_outputs"], None, [activationFromString(a) for a in data["activations"]])
             layer.weights = np.array(data["weights"])
-            layer.biases = np.array(data["biases"])
+            layer.biases = np.array([data["biases"]])
             return layer
     def __init__(self, isFromData: bool, n_inputs: int, n_outputs: int, activation: Activation, activations: list[Activation]=None, weights = [], biases = []):
         if not isFromData:

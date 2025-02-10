@@ -2,6 +2,7 @@ from ActivationClasses.Activation import Activation
 import numpy as np
 
 class BinaryStepActivation(Activation):
+    @staticmethod
     def forward(inputs):
         if not isinstance(inputs, list):
             output = 0
@@ -14,5 +15,6 @@ class BinaryStepActivation(Activation):
                 if i > 0: output = 1
                 outputs.append(output)
             return outputs
+    @staticmethod
     def toString():
         return "BinaryStep"

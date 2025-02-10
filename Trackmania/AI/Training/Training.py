@@ -42,13 +42,18 @@ class Training():
                 end_time = time.time() + 23
                 possibleEnd = False
                 endTicks = 0
-                ai.train(0.5)
+                ai.train(0.5-(g/25))
                 runCompleted = False
                 score: float = 0.0
                 lastSpeed = 0
                 lastZ = getInputs()[1][0][2]
+                lastInputs = [0.0 for _ in range(15)]
+                lastGameData = [0.0, [0.0, 0.0, 0.0], False, True]
                 while not runCompleted and time.time() < end_time and not possibleEnd:
-                    inputs, gameData = getInputs()
+                    try:
+                        inputs, gameData = getInputs()
+                    except:
+                        inputs, gameData = lastInputs, lastGameData
                     position: list[float] = gameData[0]
                     if gameData[1]:
                         score += 1000
@@ -59,6 +64,7 @@ class Training():
                             endTicks += 1
                         else:
                             possibleEnd = True
+                            score -= 1000000
                     else:
                         endTicks = 0
                     if position[1] < 10:
@@ -66,9 +72,9 @@ class Training():
                         possibleEnd = True
 
                     if position[0] > 770 or position[0] < 643:
-                        score += (position[2] - lastZ)*2
+                        score += ((position[2] - lastZ)*2)-abs(position[2] - lastZ)
                     else:
-                        score += (lastZ - position[2])*2
+                        score += ((lastZ - position[2])*2)-abs(position[2] - lastZ)
                     lastZ = position[2]
 
                     if inputs[15] > lastSpeed:
@@ -85,12 +91,13 @@ class Training():
                         keys.append('d')
 
                     if not keys == []: self.pressKeys(keys)
-                scores.append(score*-1)
+                    lastInputs, lastGameData = inputs, gameData
+                scores.append(score)
                 pydirectinput.press(['r', 'up', 'up', 'down'])
                 time.sleep(0.1)
-                pydirectinput.typewrite("G" + str(g) + "A" + str(n))
+                pydirectinput.typewrite(f"G{str(g)}A{str(n)}")
                 pydirectinput.press(['down', 'enter', 'enter', 'del'])
-            sortedAis = [ai for _, ai in sorted(zip(scores, bestNetworks), key=lambda x: x[0])]
+            sortedAis = [ai for _, ai in sorted(zip(scores, bestNetworks), key=lambda x: x[0], reverse=True)]
             bestNetworks.clear()
             returnedAis: int = ((len(sortedAis)*5)/100).__round__()
             multiplesOfAi: int = (100/returnedAis).__round__()
@@ -98,8 +105,8 @@ class Training():
             for n in bestNetworks5:
                 for _ in range(multiplesOfAi):
                     bestNetworks.append(n)
-            input("Please enter anything to confirm that the next generation can go!")
-            time.sleep(10)
+            #input("Please enter anything to confirm that the next generation can go!")
+            #time.sleep(10)
         return bestNetworks[0]
 
     def train(self, n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
