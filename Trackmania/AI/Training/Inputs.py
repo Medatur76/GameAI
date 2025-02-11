@@ -1,5 +1,5 @@
 from GameInfoProcessing.FrameProcessor import takePhoto
-import socket, json, time
+import socket, json
 
 def getInputs():
     output: list[float] = takePhoto("Trackmania")

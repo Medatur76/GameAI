@@ -1,7 +1,6 @@
 
 from Training.Training import *
-from ActivationClasses.BinaryStep import *
-from ActivationClasses.Sigmoid import *
+from ActivationClasses.Activation import *
 from Training.Inputs import *
 import pydirectinput
 

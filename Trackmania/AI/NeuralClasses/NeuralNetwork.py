@@ -1,9 +1,7 @@
 from NeuralClasses.NeuralLayer import NeuralLayer
-from ActivationClasses.Activation import Activation
+from ActivationClasses.Activation import *
 from typing_extensions import TypeAlias
 from typing import Literal
-from ActivationClasses.BinaryStep import BinaryStepActivation
-from ActivationClasses.Sigmoid import SigmoidActivation
 import json
 
 preset: TypeAlias = Literal["Yosh"]

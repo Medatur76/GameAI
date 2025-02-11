@@ -1,7 +1,4 @@
-from ActivationClasses.Activation import Activation
-from ActivationClasses.BinaryStep import BinaryStepActivation
-from ActivationClasses.Sigmoid import SigmoidActivation
-from ActivationClasses.HyperbolicTanget import HyperTangActivation
+from ActivationClasses.Activation import *
 import numpy as np
 
 def activationFromString(string: str):

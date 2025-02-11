@@ -25,13 +25,13 @@ class Training():
         for key in keys:
             pydirectinput.keyDown(key)
         self.nextUpKeys = keys.copy()
-    def genTrain(self, n_layers: int=None, n_output_activations: list[Activation]=None, base_activation: Activation=Activation, generations: int=1, ais: int = 1, preset: preset = None):
+    def genTrain(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, generations: int=1, ais: int = 1, nnpreset: preset = None):
         """Trains the AI by running a number of random neural networks (the ais input times 100) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 100, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
         print("Started!")
-        if preset == None: bestNetworks = [NeuralNetwork(16, n_layers, 4, n_output_activations, base_activation) for _ in range(ais*100)]
-        else: bestNetworks = [NeuralNetwork.fromPreset(preset) for _ in range(ais*100)]
+        if nnpreset == None: bestNetworks = [NeuralNetwork(16, n_layers, 4, output_activations, base_activation) for _ in range(ais*100)]
+        else: bestNetworks = [NeuralNetwork.fromPreset(nnpreset) for _ in range(ais*100)]
         pydirectinput.press('del')
         for g in range(generations):
             self.currentGen = g+1
@@ -122,7 +122,7 @@ class Training():
             end_time = time.time() + 23
             possibleEnd = False
             endTicks = 0
-            nn.train(0.5)
+            nn.train(0.25)
             runCompleted = False
             score: float = 0.0
             lastSpeed = 0
@@ -172,3 +172,6 @@ class Training():
             if (score > lastScore): lastScore = score
             else: nn.revert()
         return nn
+    def trainPPO(self, n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100, preset: preset = None):
+        """PPO Training for the network. its like the ``train()`` function but instead uses back propagation to more quickly improve. More resource intesive."""
+        
