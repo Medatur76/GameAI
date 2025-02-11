@@ -42,7 +42,7 @@ class Training():
                 end_time = time.time() + 23
                 possibleEnd = False
                 endTicks = 0
-                ai.train((g*0.5)/(1400/generations))
+                ai.train((1400/generations)/((g+1)*1000))
                 runCompleted = False
                 score: float = 0.0
                 lastSpeed = 0
@@ -109,10 +109,13 @@ class Training():
             #time.sleep(10)
         return bestNetworks[0]
 
-    def train(self, n_layers: int, output_activations: list[Activation], base_activation: Activation=Activation, runs: int=100):
+    def train(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, runs: int=100, preset: preset = None):
         """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than the last reward. Will try back propagation to make good adjustments it the reward is good."""
         while not getInputs()[1][2]: time.sleep(0.1)
-        nn = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
+        if preset == None:
+            nn = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
+        else:
+            nn = NeuralNetwork.fromPreset(preset)
         lastScore = 0
         pydirectinput.press('del')
         for r in range(runs):
