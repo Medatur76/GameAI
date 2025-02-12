@@ -1,0 +1,4 @@
+from AI.ActivationClasses.Activation import Activation
+from AI.ActivationClasses.BinaryStep import BinaryStepActivation
+from AI.ActivationClasses.HyperbolicTanget import HyperTangActivation
+from AI.ActivationClasses.Sigmoid import SigmoidActivation

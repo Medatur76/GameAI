@@ -1,10 +1,10 @@
-from NeuralClasses.NeuralLayer import NeuralLayer
-from ActivationClasses.Activation import *
+from AI.NeuralClasses.NeuralLayer import NeuralLayer
+from AI.ActivationClasses.Activations import *
 from typing_extensions import TypeAlias
 from typing import Literal
 import json
 
-preset: TypeAlias = Literal["Yosh"]
+preset: TypeAlias = Literal["Yosh", "Racer"]
 
 class NeuralNetwork(): 
     @classmethod
@@ -14,7 +14,9 @@ class NeuralNetwork():
     @classmethod
     def fromPreset(nn, preset: preset):
         if preset == "Yosh":
-            return NeuralNetwork(16, 2, 4, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], SigmoidActivation, [NeuralLayer(False, 16, 64, SigmoidActivation), NeuralLayer(False, 64, 16, SigmoidActivation), NeuralLayer(False, 16, 4, BinaryStepActivation, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation])], preset)
+            return nn(16, 2, 4, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], SigmoidActivation, [NeuralLayer(False, 16, 64, SigmoidActivation), NeuralLayer(False, 64, 16, SigmoidActivation), NeuralLayer(False, 16, 4, BinaryStepActivation, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation])], preset)
+        elif preset == "Racer":
+            return nn.fromFile("Racer.nn")
     def __init__(self, n_inputs: int, n_layers: int, n_outputs: int, output_activations: list[Activation], base_activation: Activation=Activation, layers: list[NeuralLayer]=None, preset: preset = None, fromFile: bool = False):
         self.preset: preset | None = preset
         if not fromFile:

@@ -1,4 +1,4 @@
-from ActivationClasses.Activation import *
+from AI.ActivationClasses.Activations import *
 import numpy as np
 
 def activationFromString(string: str):

@@ -1,4 +1,4 @@
-from ActivationClasses.Activation import Activation
+from AI.ActivationClasses.Activation import Activation
 import math
 
 class SigmoidActivation(Activation):

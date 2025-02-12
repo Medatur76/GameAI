@@ -1,13 +1,13 @@
 import socket, json, time
-from test2 import test
+from AI.Training.Training import Training
 
-def run(t: test):
+def run(training: Training):
     # Create a socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Define the host and port
     host = '127.0.0.1'  # Localhost
-    port = 5000         # You can choose any available port
+    port = 6161         # You can choose any available port
 
     # Bind the socket to the host and port
     server_socket.bind((host, port))
@@ -20,7 +20,7 @@ def run(t: test):
 
     while True:
         # Accept a connection from a client
-        client_socket, addr = server_socket.accept()
+        client_socket, _ = server_socket.accept()
 
         # Receive the request data
         request = client_socket.recv(1024).decode('utf-8').split("\r\n")[0].split(" ")[1].replace(f"/{host}:{port}", "")
@@ -31,10 +31,9 @@ def run(t: test):
             http_response = f"HTTP/1.1 200 OK\nContent-type: text/html\n\n{html_data}"
         elif "/data" == request:
             data = {
-                'position': [51, 271, 8],
-                'speed': 123,
-                'time_elapesd': time.time(),
-                'num': t.num
+                'position': training.position,
+                'speed': training.speed,
+                'time_elapsed': time.time()-training.startTime
             }
 
             json_data = json.dumps(data)
@@ -43,10 +42,16 @@ def run(t: test):
             http_response = f"HTTP/1.1 200 OK\nContent-Type: application/json\n\n{json_data}"
         else:
             # Default JSON data for the root endpoint
-            data = {
-                'status': 'idle',
-                'training': {'generation': 1, 'ai': 50}
-            }
+            if training.isGen:
+                data = {
+                    'status': 'idle',
+                    'training': {'generation': training.currentGen, 'ai': training.currentAI}
+                }
+            else:
+                data = {
+                    'status': 'idle',
+                    'training': {'run': training.currentAI}
+                }
             # Convert the data to JSON
             json_data = json.dumps(data)
 

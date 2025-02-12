@@ -1,12 +1,14 @@
 
-from Training.Training import *
-from ActivationClasses.Activation import *
-from Training.Inputs import *
-import pydirectinput
+from AI.Training.Training import *
+from AI.ActivationClasses.Activation import *
+from AI.Training.Inputs import *
+from Server.Server import run
+import pydirectinput, threading, time
 
 
 class Main:
     nextUpKeys: list[str] = []
+    train = Training()
 
     def pressKeys(self, keys: list[str]):
         for key in keys:
@@ -22,6 +24,7 @@ class Main:
         self.nextUpKeys = keys.copy()
 
     def run(self):
+        time.sleep(0.1)
         # Inputs:
         # 15 - Distance
         # 1 - Speed
@@ -39,12 +42,12 @@ class Main:
                 bestRacer = NeuralNetwork.fromFile("Racer.nn")
             elif choose == "2":
                 if input("Please enter gen if you would like to use generational training: ") == "gen":
-                    bestRacer = Training().genTrain(generations=int(input("Generations: ")), preset="Yosh")
+                    bestRacer = self.train.genTrain(generations=int(input("Generations: ")), preset="Yosh")
                 else:
-                    bestRacer = Training().train(preset="Yosh")
+                    bestRacer = self.train.train(preset="Yosh", runs=200)
         else:
-            #bestRacer = Training().genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
-            bestRacer = Training().genTrain(generations=int(input("Generations: ")), preset="Yosh")
+            #bestRacer = self.train.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
+            bestRacer = self.train.genTrain(generations=int(input("Generations: ")), preset="Yosh")
         bestRacer.save()
         print("Saved")
         while not getInputs()[1][2]: time.sleep(0.1)
@@ -62,4 +65,8 @@ class Main:
 
 main = Main()
 
-main.run()
+trainingThread = threading.Thread(target=main.run)
+
+trainingThread.start()
+
+run(main.train)
