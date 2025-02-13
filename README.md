@@ -19,13 +19,17 @@ Requirements:
 2. Acces to developer mode on Open Planet
 3. Python 3.11.9 installed
 
-Download the [Trackmania](/Trackmania) folder
+Setup:
 
-Move the Plugin folder into the Open Planet Plugins folder.
+1. Download the [Trackmania](/Trackmania) folder
+2. Move the Plugin folder into the Open Planet Plugins folder.
+3. run ``pip install numpy pydirectinput opencv-python pyautogui pywinctl --upgrade``
 
-Run Trackmania, set Open Planet to Developer mode and restart the game.
+Instructions:
 
-
+3. Run Trackmania, set Open Planet to Developer mode.
+4. Load up your training track
+5. Run the main.py file
 
 ## Rocket League
 
