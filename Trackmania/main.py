@@ -42,12 +42,12 @@ class Main:
                 bestRacer = NeuralNetwork.fromFile("Racer.nn")
             elif choose == "2":
                 if input("Please enter gen if you would like to use generational training: ") == "gen":
-                    bestRacer = self.train.genTrain(generations=int(input("Generations: ")), preset="Yosh")
+                    bestRacer = self.train.genTrain(generations=int(input("Generations: ")), nnpreset="Yosh")
                 else:
                     bestRacer = self.train.train(preset="Yosh", runs=200)
         else:
             #bestRacer = self.train.genTrain(10, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], generations=3)
-            bestRacer = self.train.genTrain(generations=int(input("Generations: ")), preset="Yosh")
+            bestRacer = self.train.genTrain(generations=int(input("Generations: ")), nnpreset="Yosh")
         bestRacer.save()
         print("Saved")
         while not getInputs()[1][2]: time.sleep(0.1)
