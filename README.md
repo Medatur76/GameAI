@@ -17,7 +17,7 @@ If you want to learn more click these links:
 Requirements:
 1. Trackmania 2020 & Open Planet
 2. Acces to developer mode on Open Planet
-3. Python 3.11.9 installed
+3. Python >= 3.11.9 installed
 
 Setup:
 
@@ -30,6 +30,8 @@ Instructions:
 3. Run Trackmania, set Open Planet to Developer mode.
 4. Load up your training track
 5. Run the main.py file
+6. Put the car in fist person view (where the camera is placed right before the front of the car)
+7. Press J and watch the training
 
 ## Rocket League
 
