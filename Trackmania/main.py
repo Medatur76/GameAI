@@ -14,6 +14,7 @@ class Main:
         for key in keys:
             try:
                 self.nextUpKeys.remove(key)
+                keys.remove(key)
             except:
                 pass
         for key in self.nextUpKeys:
