@@ -157,4 +157,39 @@ class Training():
                 critic = NeuralNetwork.fromPreset(critic_preset)
             agent = NeuralNetwork.fromPreset(preset)
 
-        pass
+        for e in range(episodes):
+            episode: list[tuple] = []
+            nextInput, _ = getInputs()
+            self.startTime = time.time()
+            end_time = self.startTime + 20
+            while time.time() < end_time:
+                runTime = time.time() - self.startTime
+                score = 0
+                action = agent.forward(nextInput)
+
+                keys = []
+                if action[0] == 1: 
+                    keys.append('w')
+                if action[1] == 1: 
+                    keys.append('s')
+                if action[2] == 1: 
+                    keys.append('a')
+                if action[3] == 1: 
+                    keys.append('d')
+
+                if not keys == []: self.pressKeys(keys)
+
+                score *= decayFactor**(((runTime*100).__round__())/100)
+
+                episode.append((nextInput, action, score))
+                time.sleep(0.01)
+            pydirectinput.press(['r', 'up', 'up', 'down'])
+            time.sleep(0.1)
+            pydirectinput.typewrite(f"Ep{e}")
+            pydirectinput.press(['down', 'enter', 'enter'])
+            # Critic training and back prop
+            trainingValues: list[tuple] = []
+            for timestamp in range(episode):
+                state, _, reward = episode[timestamp]
+                discordedReward = critic.forward(state)
+            pydirectinput.press('del')
