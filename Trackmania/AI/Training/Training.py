@@ -151,7 +151,7 @@ class Training():
 
         if preset == None:
             agent = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
-            critic = NeuralNetwork(17, n_layers, 1, [critic_output_activation], critic_base_activation)
+            critic = NeuralNetwork(17, n_layers, 1, [critic_output_activation], critic_base_activations)
         else:
             if not critic_preset == None:
                 critic = NeuralNetwork.fromPreset(critic_preset)
