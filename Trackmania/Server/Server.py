@@ -27,7 +27,7 @@ def run(training: Training):
 
         # Determine the response based on the requested path
         if "/display" == request:
-            html_data = open("index.html", "r").read()
+            html_data = open("./Trackmania/Server/index.html", "r").read()
             http_response = f"HTTP/1.1 200 OK\nContent-type: text/html\n\n{html_data}"
         elif "/data" == request:
             data = {
