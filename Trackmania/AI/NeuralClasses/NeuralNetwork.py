@@ -68,3 +68,7 @@ class NeuralNetwork():
             data = data[:-1] + "\r\n\t\t\t\t]\r\n\t\t\t},"
         data = data[:-1] + "\r\n\t\t]\r\n\t}\r\n}"
         file.write(data)
+    def backpropagate(self, deriv):
+        hiddenLayersReversed = self.layers.copy()
+        hiddenLayersReversed.reverse()
+        hiddenLayersReversed = hiddenLayersReversed[:-1]
