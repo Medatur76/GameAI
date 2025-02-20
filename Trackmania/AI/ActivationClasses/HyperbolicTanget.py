@@ -11,3 +11,9 @@ class HyperTangActivation(Activation):
     @staticmethod
     def toString() -> str:
         return "Hyperbolic"
+    @staticmethod
+    def derivative(inputs):
+        if not isinstance(inputs, list):
+            return 1-(inputs**2)
+        else:
+            return [1-(i**2) for i in inputs]

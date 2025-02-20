@@ -166,6 +166,7 @@ class Training():
                 runTime = time.time() - self.startTime
                 score = 0
                 action = agent.forward(nextInput)
+                # TODO Mean and standard deviation in the agents output
 
                 keys = []
                 if action[0] == 1: 
@@ -187,9 +188,13 @@ class Training():
             time.sleep(0.1)
             pydirectinput.typewrite(f"Ep{e}")
             pydirectinput.press(['down', 'enter', 'enter'])
-            # Critic training and back prop
-            trainingValues: list[tuple] = []
-            for timestamp in range(episode):
+            trainingValues: list[float] = []
+            for timestamp in range(len(episode)):
                 state, _, reward = episode[timestamp]
-                discordedReward = critic.forward(state)
+                discountedReward = critic.forward(state)
+                for future in range(len(episode) - timestamp - 1):
+                    reward += episode[future + timestamp + 1][2]
+                trainingValues.append(-2*(reward-discountedReward))
+            # Train the critic on the trainingValues using back prop
             pydirectinput.press('del')
+        return agent

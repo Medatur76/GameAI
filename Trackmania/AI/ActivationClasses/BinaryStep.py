@@ -18,3 +18,6 @@ class BinaryStepActivation(Activation):
     @staticmethod
     def toString():
         return "BinaryStep"
+    @staticmethod
+    def derivative(_):
+        return 0

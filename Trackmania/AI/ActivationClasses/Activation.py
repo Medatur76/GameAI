@@ -5,3 +5,6 @@ class Activation():
     @staticmethod
     def toString() -> str:
         return "Activation"
+    @staticmethod
+    def derivative(_):
+        return 1
