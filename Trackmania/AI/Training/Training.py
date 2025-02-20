@@ -144,18 +144,20 @@ class Training():
                 if (score > lastScore): lastScore = score
                 else: nn.revert()
         return nn
-    def trainPPO(self, n_layers: int, output_activations: list[Activation], critic_output_activation: Activation, base_activation: Activation=Activation, critic_base_activations: Activation=Activation, episodes: int=100, preset: preset = None, critic_preset: preset = None):
+    def trainPPO(self, n_layers: int, output_activations: list[Activation], coach_output_activation: Activation, base_activation: Activation=Activation, coach_base_activations: Activation=Activation, episodes: int=100, preset: preset = None, coach_preset: preset = None):
         """PPO Training for the network."""
         
         decayFactor = 0.95
 
         if preset == None:
-            agent = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
-            critic = NeuralNetwork(17, n_layers, 1, [critic_output_activation], critic_base_activations)
+            driver = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
+            coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
         else:
-            if not critic_preset == None:
-                critic = NeuralNetwork.fromPreset(critic_preset)
-            agent = NeuralNetwork.fromPreset(preset)
+            if not coach_preset == None:
+                coach = NeuralNetwork.fromPreset(coach_preset)
+            else:
+                coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
+            driver = NeuralNetwork.fromPreset(preset)
 
         for e in range(episodes):
             episode: list[tuple] = []
@@ -165,8 +167,8 @@ class Training():
             while time.time() < end_time:
                 runTime = time.time() - self.startTime
                 score = 0
-                action = agent.forward(nextInput)
-                # TODO Mean and standard deviation in the agents output
+                action = driver.forward(nextInput)
+                # TODO Mean and standard deviation in the drivers output
 
                 keys = []
                 if action[0] == 1: 
@@ -188,13 +190,15 @@ class Training():
             time.sleep(0.1)
             pydirectinput.typewrite(f"Ep{e}")
             pydirectinput.press(['down', 'enter', 'enter'])
+            # Critic training
             trainingValues: list[float] = []
             for timestamp in range(len(episode)):
                 state, _, reward = episode[timestamp]
-                discountedReward = critic.forward(state)
+                discountedReward = coach.forward(state)
                 for future in range(len(episode) - timestamp - 1):
                     reward += episode[future + timestamp + 1][2]
-                trainingValues.append(-2*(reward-discountedReward))
+                derivitive = -2*(reward-discountedReward)
             # Train the critic on the trainingValues using back prop
+            # Agent training
             pydirectinput.press('del')
         return agent
