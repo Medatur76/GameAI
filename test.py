@@ -1,15 +1,6 @@
 import numpy as np
 from alive_progress import alive_bar
 
-list1 = [[5], [6], [7], [8], [9]]
-list2 = [[10], [11], [12], [13], [14]]
-list3 = [[15], [16], [17], [18], [19]]
-
-list4 = np.concatenate([list1, list2], axis=1)
-list5 = np.concatenate([list4, list3], axis=1)
-
-print(list4, list5)
-
 # Define the activation functions
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))

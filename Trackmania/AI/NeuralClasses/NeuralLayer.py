@@ -11,16 +11,16 @@ class NeuralLayer():
     @classmethod
     def fromData(nl, data):
         if data["activations"] == "None":
-            layer = nl(True, data["n_inputs"], data["n_outputs"], activationFromString(data["activation"]), None)
+            layer = nl(data["n_inputs"], data["n_outputs"], activationFromString(data["activation"]), None, isFromData=True)
             layer.weights = np.array(data["weights"])
             layer.biases = np.array([data["biases"]])
             return layer
         else:
-            layer = nl(True, data["n_inputs"], data["n_outputs"], None, [activationFromString(a) for a in data["activations"]])
+            layer = nl(data["n_inputs"], data["n_outputs"], None, [activationFromString(a) for a in data["activations"]], isFromData=True)
             layer.weights = np.array(data["weights"])
             layer.biases = np.array([data["biases"]])
             return layer
-    def __init__(self, isFromData: bool, n_inputs: int, n_outputs: int, activation: Activation, activations: list[Activation]=None, weights = [], biases = []):
+    def __init__(self, n_inputs: int, n_outputs: int, activation: Activation, activations: list[Activation]=None, weights = [], biases = [], isFromData: bool = False):
         if not isFromData:
             self.multiActivations: bool = False
             self.activation: Activation = activation
@@ -60,12 +60,14 @@ class NeuralLayer():
 
         else: self.output = np.dot(inputs, self.weights) + self.biases
     def backward(self, error):
-        delta
+        delta = None
         if self.multiActivations:
-            for i in range(len(self.output)):
-                delta = np.concatenate([delta, error[i] * self.activations[i].derivative(self.output[i])])
+            delta = error[0] * self.activations[0].derivative(self.output[0])
+            for i in range(len(self.output)-1):
+                delta = np.concatenate([delta, error[i+1] * self.activations[i+1].derivative(self.output[i+1])], axis=1)
         else:
             delta = error * self.activation.derivative(self.output)
+        print(delta, self.multiActivations)
         self.weights += self.input.T.dot(delta)
         self.biases += np.sum(delta, axis=0, keepdims=True)
         return delta

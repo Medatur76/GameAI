@@ -195,7 +195,7 @@ class Training():
                 discountedReward = coach.forward(state)
                 for future in range(len(episode) - timestamp - 1):
                     reward += episode[future + timestamp + 1][2]
-                coach.backpropagate(-2*(reward-discountedReward))
+                coach.backpropagate(reward-discountedReward)
             # Agent training
             pydirectinput.press('del')
         return driver
