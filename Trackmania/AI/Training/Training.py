@@ -190,15 +190,12 @@ class Training():
             time.sleep(0.1)
             pydirectinput.typewrite(f"Ep{e}")
             pydirectinput.press(['down', 'enter', 'enter'])
-            # Critic training
-            trainingValues: list[float] = []
             for timestamp in range(len(episode)):
                 state, _, reward = episode[timestamp]
                 discountedReward = coach.forward(state)
                 for future in range(len(episode) - timestamp - 1):
                     reward += episode[future + timestamp + 1][2]
-                derivitive = -2*(reward-discountedReward)
-            # Train the critic on the trainingValues using back prop
+                coach.backpropagate(-2*(reward-discountedReward))
             # Agent training
             pydirectinput.press('del')
-        return agent
+        return driver
