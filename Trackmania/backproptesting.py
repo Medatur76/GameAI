@@ -18,7 +18,7 @@ output_data = np.array([
 
 nn = NeuralNetwork(2, 3, 1, base_activation=SigmoidActivation)
 
-iterations = 1000000
+iterations = 100000
 
 with alive_bar(iterations, title='Training the AI!') as bar:
     # Train the network
@@ -32,4 +32,4 @@ with alive_bar(iterations, title='Training the AI!') as bar:
         bar()
 
 # Print the results
-print(nn.forward(training_data))
+print([str(i[0]) for i in BinaryStepActivation.forward(np.array(nn.forward(training_data))-0.5)])
