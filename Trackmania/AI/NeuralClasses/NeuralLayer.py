@@ -46,7 +46,7 @@ class NeuralLayer():
                 self.multiActivations = False
                 self.activation = activation
     def forward(self, inputs, use_activation=True):
-        self.input = inputs
+        self.input = np.array(inputs)
         if use_activation:
             if not self.multiActivations: self.output = self.activation.forward(np.dot(inputs, self.weights) + self.biases)
             else:
@@ -67,7 +67,6 @@ class NeuralLayer():
                 delta = np.concatenate([delta, error[i+1] * self.activations[i+1].derivative(self.output[i+1])], axis=1)
         else:
             delta = error * self.activation.derivative(self.output)
-        print(delta, self.multiActivations)
         self.weights += self.input.T.dot(delta)
         self.biases += np.sum(delta, axis=0, keepdims=True)
         return delta

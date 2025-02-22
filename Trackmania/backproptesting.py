@@ -16,22 +16,20 @@ output_data = np.array([
     [0]
 ])
 
-nn = NeuralNetwork(2, 3, 1, [SigmoidActivation], SigmoidActivation)
+nn = NeuralNetwork(2, 3, 1, base_activation=SigmoidActivation)
 
-iterations = 10000
+iterations = 1000000
 
 with alive_bar(iterations, title='Training the AI!') as bar:
-  # Train the network
-  for i in range(iterations):
+    # Train the network
+    for i in range(iterations):
 
-    # Forward propagation
-    output = np.array(nn.forward(training_data))
-
-    print(output)
+        # Forward propagation
+        output = np.array(nn.forward(training_data))
     
-    nn.backpropagate(output_data-output)
+        nn.backpropagate(output_data-output)
 
-    bar()
+        bar()
 
 # Print the results
 print(nn.forward(training_data))

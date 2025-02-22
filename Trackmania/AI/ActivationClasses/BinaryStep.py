@@ -1,23 +1,19 @@
 from AI.ActivationClasses.Activation import Activation
-import numpy as np
+from numpy import ndarray, zeros_like, where
 
 class BinaryStepActivation(Activation):
     @staticmethod
     def forward(inputs):
-        if not isinstance(inputs, list):
-            output = 0
-            if inputs > 0: output = 1
-            return output
+        if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
+            return where(inputs > 0, 1, 0)
         else:
             outputs: list[int] = []
             for i in inputs:
-                output = 0
-                if i > 0: output = 1
-                outputs.append(output)
+                outputs.append(where(i > 0, 1, 0))
             return outputs
     @staticmethod
     def toString():
         return "BinaryStep"
     @staticmethod
     def derivative(input):
-        return np.zeros_like(input)
+        return zeros_like(input)

@@ -17,13 +17,15 @@ class NeuralNetwork():
             return nn(16, 2, 4, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], SigmoidActivation, [NeuralLayer(False, 16, 64, SigmoidActivation), NeuralLayer(False, 64, 16, SigmoidActivation), NeuralLayer(False, 16, 4, BinaryStepActivation, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation])], preset)
         elif preset == "Racer":
             return nn.fromFile("Racer.nn")
-    def __init__(self, n_inputs: int, n_layers: int, n_outputs: int, output_activations: list[Activation], base_activation: Activation=Activation, layers: list[NeuralLayer]=None, preset: preset = None, fromFile: bool = False):
+    def __init__(self, n_inputs: int, n_layers: int, n_outputs: int, output_activations: list[Activation] = None, base_activation: Activation=Activation, layers: list[NeuralLayer]=None, preset: preset = None, fromFile: bool = False):
         self.preset: preset | None = preset
         if not fromFile:
             self.layers: list[NeuralLayer] = [];
             if layers == None:
                 for i in range(n_layers): self.layers.append(NeuralLayer(n_inputs+i*2, n_inputs+(i+1)*2, base_activation))
-                self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, None, output_activations))
+                if output_activations == None: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, base_activation, None))
+                elif len(output_activations) == 1: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, output_activations[0], None))
+                else: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, None, output_activations))
             else:
                 self.layers = layers
         else:
