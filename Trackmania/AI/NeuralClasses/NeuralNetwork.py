@@ -4,12 +4,12 @@ from typing_extensions import TypeAlias
 from typing import Literal
 import json
 
-preset: TypeAlias = Literal["Yosh", "Racer"]
+preset: TypeAlias = Literal["Yosh", "Racer", "None"]
 
 class NeuralNetwork(): 
     @classmethod
     def fromFile(nn, file_path: str):
-        data = json.load(open(file_path, "r"))["NeuralNetwork"]
+        data = json.load(open(f"{file_path}.nn", "r"))["NeuralNetwork"]
         return nn(None, None, None, None, None, [NeuralLayer.fromData(layer) for layer in data["Layers"]], fromFile = True, preset = data["preset"])
     @classmethod
     def fromPreset(nn, preset: preset):
@@ -37,17 +37,18 @@ class NeuralNetwork():
         if use_final_activation: self.layers[len(self.layers)-1].forward(self.layers[len(self.layers)-2].output)
         else: self.layers[len(self.layers)-1].forward(self.layers[len(self.layers)-2].output, use_activation=False)
         return self.layers[len(self.layers)-1].output
-    def train(self, m: float = 0.05):
+    def train(self, m: float = 0.05) -> None:
         for layer in self.layers: layer.train(m)
-    def revert(self):
+    def revert(self) -> None:
         for layer in self.layers: layer.revert()
-    def save(self):
-        file = open("Racer.nn", "w")
+    def save(self, name: str = "Racer") -> None:
+        file = open(f"{name}.nn", "w")
         data = "{\r\n\t\"NeuralNetwork\": {\r\n\t\t"
+        # Might remove this as the preset is never reused
         if not self.preset == None:
             data += "\"preset\": \"" + self.preset + "\","
         else:
-            pass
+            data += "\"preset\": \"None\","
         data += "\r\n\t\t\"Layers\": ["
         for layer in self.layers:
             data += "\r\n\t\t\t{\r\n\t\t\t\t\"n_inputs\": " + str(layer.nInputs) + ",\r\n\t\t\t\t\"n_outputs\": " + str(layer.nOutputs) + ","
@@ -70,15 +71,15 @@ class NeuralNetwork():
             data = data[:-1] + "\r\n\t\t\t\t]\r\n\t\t\t},"
         data = data[:-1] + "\r\n\t\t]\r\n\t}\r\n}"
         file.write(data)
-    def backpropagate(self, error):
+    def backpropagate(self, error, learning_rate: int=1) -> None:
         layersOrdered = self.layers.copy()
         outputLayer = layersOrdered[-1:][0]
         layersOrdered = layersOrdered[:-1]
         layersOrdered.reverse()
-        lastLayerDelta = outputLayer.backward(error)
+        lastLayerDelta = outputLayer.backward(error, learning_rate)
         for layer in range(len(layersOrdered)):
             if layer == 0:
                 dot = outputLayer.weights.T
             else:
                 dot = layersOrdered[layer-1].weights.T
-            lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot))
+            lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)

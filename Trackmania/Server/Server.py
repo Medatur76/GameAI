@@ -1,7 +1,7 @@
 import socket, json, time
 from AI.Training.Training import Training
 
-def run(training: Training):
+def run(training: Training) -> None:
     # Create a socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

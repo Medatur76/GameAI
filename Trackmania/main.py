@@ -10,7 +10,7 @@ class Main:
     nextUpKeys: list[str] = []
     train = Training()
 
-    def pressKeys(self, keys: list[str]):
+    def pressKeys(self, keys: list[str]) -> None:
         for key in keys:
             try:
                 self.nextUpKeys.remove(key)
@@ -24,7 +24,7 @@ class Main:
             pydirectinput.keyDown(key)
         self.nextUpKeys = keys.copy()
 
-    def run(self):
+    def run(self) -> None:
         time.sleep(0.1)
         # Inputs:
         # 15 - Distance

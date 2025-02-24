@@ -33,3 +33,4 @@ with alive_bar(iterations, title='Training the AI!') as bar:
 
 # Print the results
 print(f"This method is EXTREMELY inconsistent so you might want to run it a couple times. Anyway heres your data!\nExpected outputs: {[str(i[0]) for i in output_data]}\nActual Output: {[str(i[0]) for i in BinaryStepActivation.forward(np.array(nn.forward(training_data))-0.5)]}")
+print(output, output_data-output)

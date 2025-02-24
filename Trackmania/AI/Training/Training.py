@@ -90,7 +90,7 @@ class Training():
             if not keys == []: self.pressKeys(keys)
         pydirectinput.press(['r', 'up', 'up', 'down'])
         time.sleep(0.1)
-        pydirectinput.typewrite(current)
+        pydirectinput.typewrite(current, 0.1)
         pydirectinput.press(['down', 'enter', 'enter', 'del'])
         return score
     def genTrain(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, generations: int=1, ais: int = 1, nnpreset: preset = None):
@@ -167,8 +167,8 @@ class Training():
             while time.time() < end_time:
                 runTime = time.time() - self.startTime
                 score = 0
+                driver.train(0.001)
                 action = driver.forward(nextInput)
-                # TODO Mean and standard deviation in the drivers output
 
                 keys = []
                 if action[0] == 1: 
@@ -182,20 +182,26 @@ class Training():
 
                 if not keys == []: self.pressKeys(keys)
 
+                time.sleep(0.01)
+
+                nextInput, gameData = getInputs()
+
                 score *= decayFactor**(((runTime*100).__round__())/100)
 
                 episode.append((nextInput, action, score))
-                time.sleep(0.01)
             pydirectinput.press(['r', 'up', 'up', 'down'])
             time.sleep(0.1)
-            pydirectinput.typewrite(f"Ep{e}")
+            pydirectinput.typewrite(f"Ep{e}", 0.1)
             pydirectinput.press(['down', 'enter', 'enter'])
-            for timestamp in range(len(episode)):
-                state, _, reward = episode[timestamp]
+            for frame in range(len(episode)):
+                state, _, reward = episode[frame]
                 discountedReward = coach.forward(state)
-                for future in range(len(episode) - timestamp - 1):
-                    reward += episode[future + timestamp + 1][2]
-                coach.backpropagate(reward-discountedReward)
-            # Agent training
+                for future in range(len(episode) - frame - 1):
+                    reward += episode[future + frame + 1][2]
+                # Coach learning
+                coach.backpropagate(-2(reward-discountedReward))
+                # Driver learning
+                advantage = reward-discountedReward
+
             pydirectinput.press('del')
         return driver

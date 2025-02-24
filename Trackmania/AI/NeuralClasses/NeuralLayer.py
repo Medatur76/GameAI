@@ -59,16 +59,16 @@ class NeuralLayer():
                 self.output = outputs
 
         else: self.output = np.dot(inputs, self.weights) + self.biases
-    def backward(self, error):
+    def backward(self, error, learning_rate):
         delta = None
         if self.multiActivations:
             delta = error[0] * self.activations[0].derivative(self.output[0])
             for i in range(len(self.output)-1):
                 delta = np.concatenate([delta, error[i+1] * self.activations[i+1].derivative(self.output[i+1])], axis=1)
         else:
-            delta = error * self.activation.derivative(self.output)
-        self.weights += self.input.T.dot(delta)
-        self.biases += np.sum(delta, axis=0, keepdims=True)
+            delta = error * np.array(self.activation.derivative(self.output))
+        self.weights += self.input.T.dot(delta) * learning_rate
+        self.biases += np.sum(delta, axis=0, keepdims=True) * learning_rate
         return delta
     def train(self, m: float = 0.05):
         self.pWeights = self.weights.copy()
