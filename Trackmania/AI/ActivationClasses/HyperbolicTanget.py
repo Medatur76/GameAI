@@ -5,10 +5,13 @@ from numpy import ndarray
 class HyperTangActivation(Activation):
     @staticmethod
     def forward(inputs):
-        if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
-            return ((math.e**inputs) - (math.e**(-inputs)))/((math.e**inputs)+(math.e**(-inputs)))
+        if isinstance(inputs, list) or isinstance(inputs, ndarray):
+            return [HyperTangActivation.forward(x) for x in inputs]
         else:
-            return [((math.e**x) - (math.e**(-x)))/((math.e**x)+(math.e**(-x))) for x in inputs]
+            if abs(inputs) >= 6.5:
+                return 1 * (inputs/abs(inputs))
+            else:
+                return ((math.e**inputs) - (math.e**(-inputs)))/((math.e**inputs)+(math.e**(-inputs)))
     @staticmethod
     def toString() -> str:
         return "Hyperbolic"
@@ -17,4 +20,4 @@ class HyperTangActivation(Activation):
         if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
             return 1-(inputs**2)
         else:
-            return [1-(i**2) for i in inputs]
+            return [HyperTangActivation.derivative(i) for i in inputs]

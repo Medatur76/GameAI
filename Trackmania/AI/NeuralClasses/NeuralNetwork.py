@@ -8,11 +8,13 @@ preset: TypeAlias = Literal["Yosh", "Racer", "None"]
 
 class NeuralNetwork(): 
     @classmethod
-    def fromFile(nn, file_path: str):
-        data = json.load(open(f"{file_path}.nn", "r"))["NeuralNetwork"]
+    def fromFile(nn, file_path: str): 
+        """Lets you load a file with a neural netwrok stored in it. Must have the .nn extentions"""
+        data = json.load(open(f"{file_path.removesuffix('.nn')}.nn", "r"))["NeuralNetwork"]
         return nn(None, None, None, None, None, [NeuralLayer.fromData(layer) for layer in data["Layers"]], fromFile = True, preset = data["preset"])
     @classmethod
     def fromPreset(nn, preset: preset):
+        """Lets you load a preset neural network"""
         if preset == "Yosh":
             return nn(16, 2, 4, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation], SigmoidActivation, [NeuralLayer(False, 16, 64, SigmoidActivation), NeuralLayer(False, 64, 16, SigmoidActivation), NeuralLayer(False, 16, 4, BinaryStepActivation, [BinaryStepActivation, BinaryStepActivation, BinaryStepActivation, BinaryStepActivation])], preset)
         elif preset == "Racer":
