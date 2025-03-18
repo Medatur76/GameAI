@@ -25,8 +25,8 @@ class NeuralNetwork():
             self.layers: list[NeuralLayer] = [];
             if layers == None:
                 for i in range(n_layers): self.layers.append(NeuralLayer(n_inputs+i*2, n_inputs+(i+1)*2, base_activation))
-                if output_activations == None: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, base_activation, None))
-                elif len(output_activations) == 1: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, output_activations[0], None))
+                if output_activations == None: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, base_activation))
+                elif len(output_activations) == 1: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, output_activations[0]))
                 else: self.layers.append(NeuralLayer(n_inputs+(n_layers)*2, n_outputs, None, output_activations))
             else:
                 self.layers = layers
@@ -85,12 +85,12 @@ class NeuralNetwork():
             else:
                 dot = layersOrdered[layer-1].weights.T
             lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
-    def newBackprop(self, error, learning_rate: int=1) -> None:
+    def distributionPropagation(self, error, output, learning_rate: float=1) -> None:
         layersOrdered = self.layers.copy()
         outputLayer = layersOrdered[-1:][0]
         layersOrdered = layersOrdered[:-1]
         layersOrdered.reverse()
-        #outputlayer.backward2(...)
-        #for layer in range(len(layersOrdered)):
+        outputLayer.distributionPropagation(error, learning_rate, True, output)
+        for layer in range(len(layersOrdered)):
             # Stuff if needed
-            # layersOrdered[layer].backward2(...)
+            layersOrdered[layer].distributionPropagation(...)

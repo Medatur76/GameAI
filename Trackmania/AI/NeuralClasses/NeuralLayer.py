@@ -78,4 +78,10 @@ class NeuralLayer():
     def revert(self):
         self.weights = self.pWeights.copy()
         self.biases = self.pBiases.copy()
-    #def backward2(self, error, learning_rate):
+    def distributionPropagation(self, error, learning_rate, outputLayer: bool = False, output = None):
+        if outputLayer:
+            if not self.nOutputs == 2:
+                raise Exception("Need to update this to fit all output sizes")
+            dL_dsigma = error * (output - self.output[0]) / (self.output[1] + 1e-8)
+            delta = np.array([error, dL_dsigma * ])
+

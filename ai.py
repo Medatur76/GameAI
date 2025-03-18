@@ -27,8 +27,8 @@ class NeuralNetwork:
         # Output layer: two values (mu and sigma parameter)
         self.z2 = np.dot(self.a1, self.W2) + self.b2
         # Apply sigmoid activation on the output layer
-        self.a2 = sigmoid(self.z2)
-        # self.a2 = self.z2
+        # self.a2 = sigmoid(self.z2)
+        self.a2 = self.z2
         self.mu = self.a2[0]
         # Ensure sigma is positive using exponentiation
         self.sigma = np.exp(self.a2[1])
@@ -64,7 +64,8 @@ class NeuralNetwork:
         dL_da2[1] = dL_dsigma * self.sigma  # chain rule for sigma
         
         # Backprop through the sigmoid activation on z2:
-        dL_dz2 = dL_da2 * sigmoid_derivative(self.a2)
+        # dL_dz2 = dL_da2 * sigmoid_derivative(self.a2)
+        dL_dz2 = dL_da2
         
         # Gradients for the output layer weights and biases:
         dL_dW2 = np.outer(self.a1, dL_dz2)

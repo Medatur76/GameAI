@@ -1,7 +1,8 @@
 from AI.Training.Inputs import getInputs
 from AI.ActivationClasses.Activation import Activation
 from AI.NeuralClasses.NeuralNetwork import NeuralNetwork, preset
-import time, pydirectinput
+import numpy as np
+import time, pydirectinput, math
 
 def seqPressKeys(keys: list[str]):
         for key in keys:
@@ -150,7 +151,7 @@ class Training():
         decayFactor = 0.95
 
         if preset == None:
-            driver = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
+            driver = NeuralNetwork(16, n_layers, 8, output_activations, base_activation)
             coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
         else:
             if not coach_preset == None:
@@ -168,7 +169,13 @@ class Training():
                 runTime = time.time() - self.startTime
                 score = 0
                 driver.train(0.001)
-                action = driver.forward(nextInput)
+                output = driver.forward(nextInput)
+                action = []
+                i = 0
+
+                for _ in range(4):
+                    action.append(np.random.normal(output[i], math.e**np.log(np.exp(output[i+1]))))
+                    i += 2
 
                 keys = []
                 if action[0] == 1: 
