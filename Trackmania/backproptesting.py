@@ -18,11 +18,11 @@ output_data = np.array([
 
 nn = NeuralNetwork(2, 3, 1, base_activation=HyperTangActivation)
 
-iterations = 200000
+iterations: int = 200000
 
 with alive_bar(iterations, title='Training the AI!') as bar:
     # Train the network
-    for i in range(iterations):
+    for _ in range(iterations):
 
         # Forward propagation
         output = np.array(nn.forward(training_data))

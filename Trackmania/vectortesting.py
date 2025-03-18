@@ -29,9 +29,14 @@ with alive_bar(iterations, title='Training the AI!') as bar:
         nn.train()
 
         # Forward propagation
-        output = np.array(nn.forward(training_data[r_i]))[0]
-    
-        nn.backpropagate(2*(np.random.normal(output[0], 10**output[1], 1)[0]-output_data[r_i][0]), 0.1)
+        output = np.array(nn.forward(training_data))
+
+        actions = []
+
+        for array in output:
+            actions.append(np.random.normal(array[0], math.e**np.log(np.exp(array[1])), 1))
+
+        nn.backpropagate(output_data-output, learning_rate=learningRate)
 
         bar()
 
