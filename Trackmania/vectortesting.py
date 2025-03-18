@@ -30,10 +30,10 @@ with alive_bar(iterations, title='Training the AI!', bar='filling') as bar:
         # Forward propagation
         output = np.array(nn.forward(training_data))
 
-        #actions = []
+        actions = []
 
-        #for array in output:
-        #    actions.append(np.random.normal(array[0], math.e**np.log(np.exp(array[1])), 1))
+        for array in output:
+            actions.append(np.random.normal(array[0], math.e**np.log(np.exp(array[1])), 1))
 
         nn.backpropagate(output_data-output, learning_rate=learningRate)
 

@@ -73,7 +73,7 @@ class NeuralNetwork():
             data = data[:-1] + "\r\n\t\t\t\t]\r\n\t\t\t},"
         data = data[:-1] + "\r\n\t\t]\r\n\t}\r\n}"
         file.write(data)
-    def backpropagate(self, error, learning_rate: int=1) -> None:
+    def backpropagate(self, error, learning_rate: float=1) -> None:
         layersOrdered = self.layers.copy()
         outputLayer = layersOrdered[-1:][0]
         layersOrdered = layersOrdered[:-1]

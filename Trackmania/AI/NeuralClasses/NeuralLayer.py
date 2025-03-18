@@ -59,7 +59,7 @@ class NeuralLayer():
                 self.output = outputs
 
         else: self.output = np.dot(inputs, self.weights) + self.biases
-    def backward(self, error, learning_rate):
+    def backward(self, error, learning_rate: float):
         delta = None
         if self.multiActivations:
             delta = error[0] * self.activations[0].derivative(self.output[0])

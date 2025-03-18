@@ -1,109 +1,112 @@
 import numpy as np
+import math
 
-# --- 1. Define the Neural Network Structure ---
-def initialize_network(input_size, hidden_size1, hidden_size2, output_size):
-    """Initializes the weights and biases for the network."""
-    network = {}
-    network['W1'] = np.random.randn(input_size, hidden_size1) * 0.01  # Weights layer 1
-    network['b1'] = np.zeros((1, hidden_size1))                 # Biases layer 1
-    network['W2'] = np.random.randn(hidden_size1, hidden_size2) * 0.01 # Weights layer 2
-    network['b2'] = np.zeros((1, hidden_size2))                # Biases layer 2
-    network['W3'] = np.random.randn(hidden_size2, output_size) * 0.01 # Weights layer 3
-    network['b3'] = np.zeros((1, output_size))               # Biases layer 3
-    return network
+class NeuralNetwork:
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        # Initialize weights and biases randomly.
+        self.W1 = np.random.randn(input_dim, hidden_dim)
+        self.b1 = np.random.randn(hidden_dim)
+        self.W2 = np.random.randn(hidden_dim, output_dim)
+        self.b2 = np.random.randn(output_dim)
 
-# --- 2. Activation Function (ReLU) ---
-def relu(x):
-    """Rectified Linear Unit activation function."""
-    return np.maximum(0, x)
+    def forward(self, x) -> float:
+        """Forward pass: computes hidden activations and two outputs (mu and sigma)."""
+        self.x = x  # Store input for backprop
+        # Hidden layer activation
+        self.z1 = np.dot(x, self.W1) + self.b1
+        self.a1 = np.tanh(self.z1)
+        # Output layer: two values (mu and sigma)
+        self.z2 = np.dot(self.a1, self.W2) + self.b2
+        self.mu = self.z2[0]
+        self.sigma = math.e**np.log(np.exp(self.z2[1]))  # Ensure positive standard deviation
 
-def relu_derivative(x):
-    """Derivative of ReLU for backpropagation."""
-    return (x > 0).astype(float)
+        # Direct sampling from normal distribution
+        self.final_output = np.random.normal(self.mu, self.sigma)
+        return self.final_output
 
-# --- 3. Forward Propagation ---
-def forward_propagation(network, inputs):
-    """Performs forward propagation through the network."""
-    W1, b1, W2, b2, W3, b3 = network['W1'], network['b1'], network['W2'], network['b2'], network['W3'], network['b3']
+    def backward(self, target: float = 0, learning_rate: float = 1.0) -> None:
+        """
+        Backpropagation through heuristic estimation of gradients.
+        This approximates the gradient of the stochastic sampling operation.
+        """
+        
+        # Estimate gradients using heuristic:
+        # d(loss)/d(final_output) = 2 * (final_output - target)
+        dL_dfinal = 2 * (self.final_output - target)
+        
+        # Heuristic backpropagation:
+        # Since final_output is directly sampled, we approximate:
+        dL_dmu = dL_dfinal  # Since mu directly affects final_output
+        dL_dsigma = dL_dfinal * (self.final_output - self.mu) / (self.sigma + 1e-8)  # Approximate gradient w.r.t sigma
 
-    Z1 = np.dot(inputs, W1) + b1
-    A1 = relu(Z1)
-    Z2 = np.dot(A1, W2) + b2
-    A2 = relu(Z2)
-    Z3 = np.dot(A2, W3) + b3
-    A3 = Z3 # No activation on the final layer for simplicity.
+        # Gradients for z2 (output layer pre-activation values)
+        dL_dz2_0 = dL_dmu
+        dL_dz2_1 = dL_dsigma * self.sigma  # Since sigma = exp(z2[1]), we scale the gradient
 
-    cache = {'Z1': Z1, 'A1': A1, 'Z2': Z2, 'A2': A2, 'Z3': Z3, 'A3': A3}
-    return A3, cache
+        dL_dz2 = np.array([dL_dz2_0, dL_dz2_1])
 
-# --- 4. Loss and Normal Distribution ---
-def calculate_loss(predictions, expected):
-    """Calculates the loss using normal distribution and comparing to expected value."""
-    # Apply normal distribution to each output
-    normal_dist_values = np.array([np.random.normal(pred[0], pred[1]) for pred in predictions])
-    loss = np.mean((normal_dist_values - expected)**2) # Mean Squared Error
-    return loss, normal_dist_values
+        # Gradients for W2 and b2
+        dL_dW2 = np.outer(self.a1, dL_dz2)
+        dL_db2 = dL_dz2
 
-# --- 5. Backpropagation ---
-def backward_propagation(network, cache, inputs, predictions, expected, normal_dist_values):
-    """Performs backpropagation to update weights and biases."""
-    m = inputs.shape[0] # Number of training examples
-    W3, W2, W1 = network['W3'], network['W2'], network['W1']
-    A3, A2, A1, Z3, Z2, Z1 = cache['A3'], cache['A2'], cache['A1'], cache['Z3'], cache['Z2'], cache['Z1']
+        # Backprop into hidden layer
+        dL_da1 = np.dot(self.W2, dL_dz2)
+        dL_dz1 = dL_da1 * (1 - np.tanh(self.z1) ** 2)  # Derivative of tanh
+        dL_dW1 = np.outer(self.x, dL_dz1)
+        dL_db1 = dL_dz1
 
-    # Calculate the gradient of the loss with respect to the output
-    dZ3 = (normal_dist_values - expected).reshape(-1,1) * (predictions - normal_dist_values.reshape(-1,2)) #simple approximation.
-    dW3 = (1 / m) * np.dot(A2.T, dZ3)
-    db3 = (1 / m) * np.sum(dZ3, axis=0, keepdims=True)
+        # Gradient descent update
+        self.W2 -= learning_rate * dL_dW2
+        self.b2 -= learning_rate * dL_db2
+        self.W1 -= learning_rate * dL_dW1
+        self.b1 -= learning_rate * dL_db1
 
-    dZ2 = np.dot(dZ3, W3.T) * relu_derivative(Z2)
-    dW2 = (1 / m) * np.dot(A1.T, dZ2)
-    db2 = (1 / m) * np.sum(dZ2, axis=0, keepdims=True)
+def ab(x: np.array, nn: NeuralNetwork) -> None:
+    if x[1] == 0:
+        print(f"{x[0]} XOR {x[2]} returns {nn.forward(x):.4f}")
+    elif x[1] == 1:
+        print(f"{x[0]} AND {x[2]} returns {nn.forward(x):.4f}")
 
-    dZ1 = np.dot(dZ2, W2.T) * relu_derivative(Z1)
-    dW1 = (1 / m) * np.dot(inputs.T, dZ1)
-    db1 = (1 / m) * np.sum(dZ1, axis=0, keepdims=True)
+def ch(l: np.array) -> bool:
+    return (l[0] > 1 and l[1] < 0 and l[2] < 0 and l[3] > 1 and l[4] < 0 and l[5] < 0 and l[6] < 0 and l[7] > 1)
 
-    gradients = {'dW1': dW1, 'db1': db1, 'dW2': dW2, 'db2': db2, 'dW3': dW3, 'db3': db3}
-    return gradients
+# -----------------------------
+# Example usage:
+# -----------------------------
+if __name__ == "__main__":
+    # iterations = 1000000
 
-# --- 6. Update Parameters ---
-def update_parameters(network, gradients, learning_rate):
-    """Updates the network's parameters using the gradients."""
-    network['W1'] -= learning_rate * gradients['dW1']
-    network['b1'] -= learning_rate * gradients['db1']
-    network['W2'] -= learning_rate * gradients['dW2']
-    network['b2'] -= learning_rate * gradients['db2']
-    network['W3'] -= learning_rate * gradients['dW3']
-    network['b3'] -= learning_rate * gradients['db3']
-    return network
+    # Create a neural network with 3 inputs, one hidden layer with 4 neurons, and 2 outputs.
+    nn = NeuralNetwork(input_dim=3, hidden_dim=4, output_dim=2)
+    
+    # Example inputs for the network
+    x = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], [1, 1, 0], [1, 1, 1]])
+    # Define a target value for the final output (e.g., supervised learning target)
+    target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
+    learning_rate = 0.01
 
-# --- 7. Train the Network ---
-def train(inputs, expected_values, hidden_size1, hidden_size2, learning_rate, epochs):
-    """Trains the neural network."""
-    input_size = inputs.shape[1]
-    output_size = 2 # 2 outputs for mean and standard deviation of normal distribution.
-    network = initialize_network(input_size, hidden_size1, hidden_size2, output_size)
+    i = 0
 
-    for epoch in range(epochs):
-        predictions, cache = forward_propagation(network, inputs)
-        loss, normal_dist_values = calculate_loss(predictions, expected_values)
-        gradients = backward_propagation(network, cache, inputs, predictions, expected_values, normal_dist_values)
-        network = update_parameters(network, gradients, learning_rate)
+    # Train the network for a number of iterations
+    while not ch([nn.forward(a) for a in x]):
+        a = np.random.randint(len(x))
+        # Forward pass: compute the final output after sampling
+        output = nn.forward(x[a])
+        
+        # Compute squared error loss: (output - target)^2
+        # loss = (output - target[a]) ** 2
+        
+        # Derivative of the squared loss with respect to the final output:
+        # d(loss)/d(output) = 2*(output - target)
+        
+        # Backpropagate the error and update weights
+        nn.backward(target[a], learning_rate)
 
-        if epoch % 100 == 0:
-            print(f"Epoch {epoch}, Loss: {loss}")
-
-    return network
-
-# --- Example Usage ---
-inputs = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]]) # Example inputs
-expected_values = np.array([0.5, 0.7, 0.9]) # Example expected values
-
-trained_network = train(inputs, expected_values, hidden_size1=4, hidden_size2=4, learning_rate=0.01, epochs=1000)
-
-# Example prediction
-example_input = np.array([[0.7, 0.8]])
-prediction, _ = forward_propagation(trained_network, example_input)
-final_value = np.random.normal(prediction[0][0], prediction[0][1])
-print(f"Prediction: {prediction}, Final Value: {final_value}")
+        # Optionally print the loss every 100 iterations
+        if (i%100) == 0:
+            print(f"Iteration {i}, Loss: {np.mean(([nn.forward(a) for a in x] - target)**2):.4f}")
+        i += 1
+    print(f"Final output: ")
+    for b in x:
+        ab(b, nn)
+    print(ch([nn.forward(a) for a in x]))
