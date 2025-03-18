@@ -16,7 +16,7 @@ output_data = np.array([
     [0]
 ])
 
-nn = NeuralNetwork(2, 3, 1, base_activation=SigmoidActivation)
+nn = NeuralNetwork(2, 3, 1, base_activation=HyperTangActivation)
 
 iterations = 200000
 
@@ -27,7 +27,7 @@ with alive_bar(iterations, title='Training the AI!') as bar:
         # Forward propagation
         output = np.array(nn.forward(training_data))
     
-        nn.backpropagate(output_data-output)
+        nn.backpropagate(output_data-output, 0.1)
 
         bar()
 

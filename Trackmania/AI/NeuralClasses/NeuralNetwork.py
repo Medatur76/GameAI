@@ -85,3 +85,12 @@ class NeuralNetwork():
             else:
                 dot = layersOrdered[layer-1].weights.T
             lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
+    def newBackprop(self, error, learning_rate: int=1) -> None:
+        layersOrdered = self.layers.copy()
+        outputLayer = layersOrdered[-1:][0]
+        layersOrdered = layersOrdered[:-1]
+        layersOrdered.reverse()
+        #outputlayer.backward2(...)
+        #for layer in range(len(layersOrdered)):
+            # Stuff if needed
+            # layersOrdered[layer].backward2(...)

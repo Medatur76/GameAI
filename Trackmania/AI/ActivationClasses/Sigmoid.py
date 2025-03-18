@@ -7,7 +7,7 @@ class SigmoidActivation(Activation):
         if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
             return 1/(1+math.e**(-inputs))
         else:
-            return [1/(1+math.e**(-i)) for i in inputs]
+            return [SigmoidActivation.forward(i) for i in inputs]
     @staticmethod
     def toString():
         return "Sigmoid"
@@ -16,4 +16,4 @@ class SigmoidActivation(Activation):
         if not isinstance(inputs, list):
             return inputs*(1-inputs)
         else:
-            return [i*(1-i) for i in inputs]
+            return [SigmoidActivation.derivative(i) for i in inputs]

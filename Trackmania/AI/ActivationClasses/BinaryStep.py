@@ -9,7 +9,7 @@ class BinaryStepActivation(Activation):
         else:
             outputs: list[int] = []
             for i in inputs:
-                outputs.append(where(i > 0, 1, 0))
+                outputs.append(BinaryStepActivation.forward(i))
             return outputs
     @staticmethod
     def toString():

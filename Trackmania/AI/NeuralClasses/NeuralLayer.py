@@ -78,3 +78,4 @@ class NeuralLayer():
     def revert(self):
         self.weights = self.pWeights.copy()
         self.biases = self.pBiases.copy()
+    #def backward2(self, error, learning_rate):
