@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 def sigmoid(x):
     """Sigmoid activation function."""
@@ -10,122 +9,134 @@ def sigmoid_derivative(sigmoid_output):
     return sigmoid_output * (1 - sigmoid_output)
 
 class NeuralNetwork:
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        # Initialize weights and biases randomly.
-        self.W1 = np.random.randn(input_dim, hidden_dim)
-        self.b1 = np.random.randn(hidden_dim)
-        self.W2 = np.random.randn(hidden_dim, output_dim)
-        self.b2 = np.random.randn(output_dim)
+    def __init__(self, input_dim, hidden_dim1, hidden_dim2, output_dim):
+        # First hidden layer parameters.
+        self.W1 = np.random.randn(input_dim, hidden_dim1) * 0.1
+        self.b1 = np.zeros((1, hidden_dim1))
+        # Second hidden layer parameters.
+        self.W2 = np.random.randn(hidden_dim1, hidden_dim2) * 0.1
+        self.b2 = np.zeros((1, hidden_dim2))
+        # Output layer parameters.
+        self.W3 = np.random.randn(hidden_dim2, output_dim) * 0.1
+        self.b3 = np.zeros((1, output_dim))
 
-    def forward(self, x):
-        """Forward pass: computes hidden activations and two outputs (mu and sigma),
-           then samples final output using np.random.normal."""
-        self.x = x  # Store input for backpropagation
-        # Hidden layer using sigmoid activation
-        self.z1 = np.dot(x, self.W1) + self.b1
-        self.a1 = sigmoid(self.z1)
-        # Output layer: two values (mu and sigma parameter)
-        self.z2 = np.dot(self.a1, self.W2) + self.b2
-        # Apply sigmoid activation on the output layer
-        # self.a2 = sigmoid(self.z2)
-        self.a2 = self.z2
-        self.mu = self.a2[0]
-        # Ensure sigma is positive using exponentiation
-        self.sigma = np.exp(self.a2[1])
-        # Sample final output from a normal distribution with mean mu and std sigma
-        self.final_output = np.random.normal(self.mu, self.sigma)
+    def forward(self, X):
+        """
+        Forward pass for a mini-batch of inputs X with shape (batch_size, input_dim).
+        The network architecture is:
+          Input -> Hidden Layer 1 (sigmoid) -> Hidden Layer 2 (sigmoid) ->
+          Output Layer (sigmoid) -> [Interpretation into mu and sigma] -> Sampling.
+        """
+        self.X = X  # (batch_size, input_dim)
+
+        # First hidden layer
+        self.z1 = np.dot(X, self.W1) + self.b1         # (batch_size, hidden_dim1)
+        self.a1 = sigmoid(self.z1)                     # (batch_size, hidden_dim1)
+
+        # Second hidden layer
+        self.z2 = np.dot(self.a1, self.W2) + self.b2     # (batch_size, hidden_dim2)
+        self.a2 = sigmoid(self.z2)                     # (batch_size, hidden_dim2)
+
+        # Output layer
+        self.z3 = np.dot(self.a2, self.W3) + self.b3     # (batch_size, output_dim)
+        #self.a3 = sigmoid(self.z3)                     # (batch_size, output_dim)
+        self.a3 = self.z3
+
+        # Interpret outputs:
+        #   a3[:, 0] is mu and a3[:, 1] (after exponentiation) is sigma.
+        self.mu = self.a3[:, 0]                        # (batch_size,)
+        self.sigma = np.exp(self.a3[:, 1])              # (batch_size,)
+
+        # Sample final output for each example.
+        batch_size = X.shape[0]
+        self.final_output = np.random.normal(self.mu, self.sigma, size=batch_size)
         return self.final_output
 
     def backward(self, target, learning_rate):
         """
-        Backpropagation with heuristic gradient approximations for the stochastic sampling.
-        Computes gradients and updates weights.
+        Backward pass for the mini-batch.
+        'target' can be a scalar or an array of shape (batch_size,).
+        Returns the average loss over the mini-batch.
         """
-        # Compute Mean Squared Error loss
-        # loss = (self.final_output - target) ** 2
-        # Derivative of loss with respect to the final output.
-        dL_dfinal = 2 * (self.final_output - target)
-        
-        # Heuristic gradient approximations:
-        # For mu: d(final)/d(mu) = 1, so:
+        batch_size = self.X.shape[0]
+        # Compute Mean Squared Error loss per example and then average.
+        loss = np.mean((self.final_output - target)**2)
+
+        # Derivative of loss with respect to final output.
+        dL_dfinal = 2 * (self.final_output - target) / batch_size
+
+        # Heuristic gradient approximations for the stochastic sampling:
+        # d(final_output)/d(mu) = 1, and approximately:
+        # d(final_output)/d(sigma) ~ (final_output - mu) / sigma.
+        eps = 1e-8  # small constant to prevent division by zero
         dL_dmu = dL_dfinal
-        # For sigma: approximate derivative using:
-        # d(final)/d(sigma) ~ (final_output - mu) / sigma
-        dL_dsigma = dL_dfinal * (self.final_output - self.mu) / (self.sigma + 1e-8)
-        
-        # Now, a2 is produced from z2 via a sigmoid.
-        # mu = a2[0] and sigma = exp(a2[1]). Thus:
-        #   d(mu)/d(a2[0]) = 1, and 
-        #   d(sigma)/d(a2[1]) = exp(a2[1]) = sigma.
-        #
-        # So the gradients with respect to a2 are:
-        dL_da2 = np.zeros_like(self.a2)
-        dL_da2[0] = dL_dmu  # for mu
-        dL_da2[1] = dL_dsigma * self.sigma  # chain rule for sigma
-        
-        # Backprop through the sigmoid activation on z2:
-        # dL_dz2 = dL_da2 * sigmoid_derivative(self.a2)
-        dL_dz2 = dL_da2
-        
-        # Gradients for the output layer weights and biases:
-        dL_dW2 = np.outer(self.a1, dL_dz2)
-        dL_db2 = dL_dz2
-        
-        # Propagate gradient into the hidden layer:
-        dL_da1 = np.dot(self.W2, dL_dz2)
-        dL_dz1 = dL_da1 * sigmoid_derivative(self.a1)
-        dL_dW1 = np.outer(self.x, dL_dz1)
-        dL_db1 = dL_dz1
-        
-        # Update weights and biases:
+        dL_dsigma = dL_dfinal * (self.final_output - self.mu) / (self.sigma + eps)
+
+        # Now, a3 is the activated output, with:
+        # mu = a3[:, 0] and sigma = exp(a3[:, 1]), so:
+        # d(mu)/d(a3[:, 0]) = 1 and d(sigma)/d(a3[:, 1]) = exp(a3[:, 1]) = sigma.
+        dL_da3 = np.zeros_like(self.a3)
+        dL_da3[:, 0] = dL_dmu
+        dL_da3[:, 1] = dL_dsigma * self.sigma
+
+        # Backpropagate through the sigmoid activation at the output layer.
+        dL_dz3 = dL_da3 #* sigmoid_derivative(self.a3)  # (batch_size, output_dim)
+
+        # Gradients for the output layer parameters.
+        dL_dW3 = np.dot(self.a2.T, dL_dz3)              # (hidden_dim2, output_dim)
+        dL_db3 = np.sum(dL_dz3, axis=0, keepdims=True)    # (1, output_dim)
+
+        # Backpropagate into second hidden layer.
+        dL_da2 = np.dot(dL_dz3, self.W3.T)                # (batch_size, hidden_dim2)
+        dL_dz2 = dL_da2 * sigmoid_derivative(self.a2)     # (batch_size, hidden_dim2)
+
+        dL_dW2 = np.dot(self.a1.T, dL_dz2)                # (hidden_dim1, hidden_dim2)
+        dL_db2 = np.sum(dL_dz2, axis=0, keepdims=True)      # (1, hidden_dim2)
+
+        # Backpropagate into first hidden layer.
+        dL_da1 = np.dot(dL_dz2, self.W2.T)                # (batch_size, hidden_dim1)
+        dL_dz1 = dL_da1 * sigmoid_derivative(self.a1)     # (batch_size, hidden_dim1)
+
+        dL_dW1 = np.dot(self.X.T, dL_dz1)                 # (input_dim, hidden_dim1)
+        dL_db1 = np.sum(dL_dz1, axis=0, keepdims=True)      # (1, hidden_dim1)
+
+        # Update all parameters.
+        self.W3 -= learning_rate * dL_dW3
+        self.b3 -= learning_rate * dL_db3
         self.W2 -= learning_rate * dL_dW2
         self.b2 -= learning_rate * dL_db2
         self.W1 -= learning_rate * dL_dW1
         self.b1 -= learning_rate * dL_db1
 
-def ab(x: np.array, nn: NeuralNetwork) -> None:
-    if x[1] == 0:
-        print(f"{x[0]} XOR {x[2]} returns {nn.forward(x):.4f}")
-    elif x[1] == 1:
-        print(f"{x[0]} AND {x[2]} returns {nn.forward(x):.4f}")
-
-def ch(l: np.array) -> bool:
-    return (l[0] > 1 and l[1] < 0 and l[2] < 0 and l[3] > 1 and l[4] < 0 and l[5] < 0 and l[6] < 0 and l[7] > 1)
+        return loss
 
 # -----------------------------
 # Example usage:
 # -----------------------------
 if __name__ == "__main__":
-    iterations = 5000000
+    np.random.seed(42)  # for reproducibility
 
-    # Create a neural network with 3 inputs, one hidden layer with 4 neurons, and 2 outputs.
-    nn = NeuralNetwork(input_dim=3, hidden_dim=4, output_dim=2)
-    
-    # Example inputs for the network
-    x = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], [1, 1, 0], [1, 1, 1]])
-    # Define a target value for the final output (e.g., supervised learning target)
-    target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
+    # Hyperparameters.
+    input_dim = 2
+    hidden_dim1 = 8      # first hidden layer neurons
+    hidden_dim2 = 3      # second hidden layer neurons (as requested)
+    output_dim = 2
     learning_rate = 0.01
+    num_iterations = 100000
+    batch_size = 32
 
-    # Train the network for a number of iterations
-    for i in range(iterations):
-        a = np.random.randint(len(x))
-        # Forward pass: compute the final output after sampling
-        output = nn.forward(x[a])
-        
-        # Compute squared error loss: (output - target)^2
-        # loss = (output - target[a]) ** 2
-        
-        # Derivative of the squared loss with respect to the final output:
-        # d(loss)/d(output) = 2*(output - target)
-        
-        # Backpropagate the error and update weights
-        nn.backward(target[a], learning_rate)
+    # Create the neural network.
+    nn = NeuralNetwork(input_dim, hidden_dim1, hidden_dim2, output_dim)
+    
+    # For demonstration, we use a fixed target (or an array of targets).
+    target = 0.5
 
-        # Optionally print the loss every 100 iterations
-        if (i*100)%iterations == 0:
-            print(f"Iteration {i}, Loss: {np.sum(([nn.forward(a) for a in x] - target)**2):.4f}")
-    print(f"Final output: ")
-    for b in x:
-        ab(b, nn)
-    print(ch([nn.forward(a) for a in x]))
+    for i in range(num_iterations):
+        # Generate a mini-batch of random inputs.
+        X_batch = np.random.randn(batch_size, input_dim)
+        # Forward pass.
+        outputs = nn.forward(X_batch)
+        # Backward pass.
+        loss = nn.backward(target, learning_rate)
+        if i % 100 == 0:
+            print(f"Iteration {i}, Loss: {loss:.6f}")

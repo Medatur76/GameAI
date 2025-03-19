@@ -90,7 +90,7 @@ class NeuralNetwork():
         outputLayer = layersOrdered[-1:][0]
         layersOrdered = layersOrdered[:-1]
         layersOrdered.reverse()
-        outputLayer.distributionPropagation(error, learning_rate, True, output)
+        ldelta = outputLayer.distributionPropagation(error, learning_rate, True, output)
         for layer in range(len(layersOrdered)):
             # Stuff if needed
-            layersOrdered[layer].distributionPropagation(...)
+            ldelta = layersOrdered[layer].distributionPropagation(error, learning_rate, pdelta=ldelta)

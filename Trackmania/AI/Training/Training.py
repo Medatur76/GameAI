@@ -193,6 +193,8 @@ class Training():
 
                 nextInput, gameData = getInputs()
 
+                #Score calculations
+
                 score *= decayFactor**(((runTime*100).__round__())/100)
 
                 episode.append((nextInput, action, score))
