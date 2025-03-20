@@ -20,7 +20,11 @@ class NeuralLayer():
             layer.weights = np.array(data["weights"])
             layer.biases = np.array([data["biases"]])
             return layer
-    def __init__(self, n_inputs: int, n_outputs: int, activation: Activation, activations: list[Activation]=None, weights = [], biases = [], isFromData: bool = False):
+    def __init__(self, n_inputs: int, n_outputs: int, activation: Activation, activations: list[Activation]=None, weights = None, biases = None, isFromData: bool = False):
+        if weights is None:
+            weights = []
+        if biases is None:
+            biases = []
         if not isFromData:
             self.multiActivations: bool = False
             self.activation: Activation = activation

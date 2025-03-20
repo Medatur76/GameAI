@@ -48,8 +48,7 @@ class NeuralNetwork:
         self.sigma = np.exp(self.a3[:, 1])              # (batch_size,)
 
         # Sample final output for each example.
-        batch_size = X.shape[0]
-        self.final_output = np.random.normal(self.mu, self.sigma, size=batch_size)
+        self.final_output = np.random.normal(self.mu, self.sigma)
         return self.final_output
 
     def backward(self, target, learning_rate):
@@ -58,12 +57,11 @@ class NeuralNetwork:
         'target' can be a scalar or an array of shape (batch_size,).
         Returns the average loss over the mini-batch.
         """
-        batch_size = self.X.shape[0]
         # Compute Mean Squared Error loss per example and then average.
         loss = np.mean((self.final_output - target)**2)
 
         # Derivative of loss with respect to final output.
-        dL_dfinal = 2 * (self.final_output - target) / batch_size
+        dL_dfinal = 2 * (self.final_output - target)
 
         # Heuristic gradient approximations for the stochastic sampling:
         # d(final_output)/d(mu) = 1, and approximately:
@@ -100,6 +98,8 @@ class NeuralNetwork:
         dL_dW1 = np.dot(self.X.T, dL_dz1)                 # (input_dim, hidden_dim1)
         dL_db1 = np.sum(dL_dz1, axis=0, keepdims=True)      # (1, hidden_dim1)
 
+        print(self.a2.shape, dL_dz3.shape, self.W3.shape, self.a1.shape, dL_dz2.shape, self.W2.shape, self.X.shape, dL_dz1.shape)
+
         # Update all parameters.
         self.W3 -= learning_rate * dL_dW3
         self.b3 -= learning_rate * dL_db3
@@ -131,12 +131,14 @@ if __name__ == "__main__":
     # For demonstration, we use a fixed target (or an array of targets).
     target = 0.5
 
-    for i in range(num_iterations):
-        # Generate a mini-batch of random inputs.
-        X_batch = np.random.randn(batch_size, input_dim)
-        # Forward pass.
-        outputs = nn.forward(X_batch)
-        # Backward pass.
-        loss = nn.backward(target, learning_rate)
-        if i % 100 == 0:
-            print(f"Iteration {i}, Loss: {loss:.6f}")
+    #for i in range(num_iterations):
+    #    # Generate a mini-batch of random inputs.
+    #    X_batch = np.random.randn(batch_size, input_dim)
+    #    # Forward pass.
+    #    outputs = nn.forward(X_batch)
+    #    # Backward pass.
+    #    loss = nn.backward(target, learning_rate)
+    #    if i % 100 == 0:
+    #        print(f"Iteration {i}, Loss: {loss:.6f}")
+    output = nn.forward(np.array([0, 1]))
+    nn.backward(target, learning_rate)
