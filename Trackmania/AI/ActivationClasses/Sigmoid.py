@@ -13,7 +13,7 @@ class SigmoidActivation(Activation):
         return "Sigmoid"
     @staticmethod
     def derivative(inputs):
-        if not isinstance(inputs, list):
-            return inputs*(1-inputs)
+        if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
+            return SigmoidActivation.forward(inputs)*(1-SigmoidActivation.forward(inputs))
         else:
             return [SigmoidActivation.derivative(i) for i in inputs]

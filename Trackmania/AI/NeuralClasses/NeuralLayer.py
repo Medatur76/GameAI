@@ -49,20 +49,20 @@ class NeuralLayer():
             else:
                 self.multiActivations = False
                 self.activation = activation
-    def forward(self, inputs, use_activation=True):
+    def forward(self, inputs, inputLayer: bool = False):
         self.input = np.array(inputs)
-        if use_activation:
-            if not self.multiActivations: self.output = self.activation.forward(np.dot(inputs, self.weights) + self.biases)
-            else:
-                outputs = []
-                for o in range(len(self.biases[0])):
-                    output = self.biases[0][o]
-                    for w in range(self.nInputs):
-                        output += self.weights[w][o]*inputs[0][w]
-                    outputs.append(self.activations[o].forward(output))
-                self.output = outputs
+        if not inputLayer: inputs = inputs[0]
+        if not self.multiActivations: self.output = self.activation.forward(np.dot(inputs, self.weights) + self.biases)
+        else:
+            outputs = []
+            for o in range(len(self.biases[0])):
+                output = self.biases[0][o]
+                for w in range(self.nInputs):
+                    output += self.weights[w][o]*inputs[0][w]
+                outputs.append(self.activations[o].forward(output))
+            self.output = outputs
 
-        else: self.output = np.dot(inputs, self.weights) + self.biases
+        self.output = [self.output, np.dot(inputs, self.weights) + self.biases]
     def backward(self, error, learning_rate: float):
         delta = None
         if self.multiActivations:
@@ -82,16 +82,19 @@ class NeuralLayer():
     def revert(self):
         self.weights = self.pWeights.copy()
         self.biases = self.pBiases.copy()
-    def distributionPropagation(self, error, learning_rate, outputLayer: bool = False, output = None, pdelta = None):
+    def distributionPropagation(self, delta: np.array = None, learning_rate: float = 1, outputLayer: bool = False, inputLayer: bool = False):
         if outputLayer:
             if not self.nOutputs == 2:
                 raise Exception("Need to update this to fit all output sizes")
-            dL_dsigma = error * (output - self.output[0][0]) / (self.output[0][1] + 1e-8)
-            delta = np.array([error, dL_dsigma * self.output[0][1]])
-        else:
-            delta = np.dot(pdelta, self.weights.T) * self.activation.derivative(self.output)
-        updateWeight = np.outer(self.input.T, delta)
-        updateBiases = np.sum(delta, axis=0, keepdims=True)
+            grad_mu = -(delta - self.output[0][0][0]) / (np.exp(2 * (self.output[0][0][1] + 1e-8)))
+            grad_sigma = 1 - (delta - self.output[0][0][0])**2 / (np.exp(2 * (self.output[0][0][1] + 1e-8)))
+            delta = np.array([[grad_mu, grad_sigma]])
+        a = self.input[0]
+        if inputLayer: a = np.array([self.input])
+        updateWeight = np.dot(a.T, delta)
+        updateBiases = delta
+        if not inputLayer: delta = np.dot(delta, self.weights.T) * SigmoidActivation.derivative(self.input[1])
+        #print(delta.shape, a.shape, updateWeight.shape, self.weights.shape, f"({self.nInputs}, {self.nOutputs})", outputLayer, inputLayer)
         self.weights -= learning_rate * updateWeight
         self.biases -= learning_rate * updateBiases
         return delta
