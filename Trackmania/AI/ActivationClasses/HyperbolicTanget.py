@@ -18,6 +18,6 @@ class HyperTangActivation(Activation):
     @staticmethod
     def derivative(inputs):
         if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
-            return 1-(inputs**2)
+            return 1-(HyperTangActivation.forward(inputs)**2)
         else:
             return [HyperTangActivation.derivative(i) for i in inputs]

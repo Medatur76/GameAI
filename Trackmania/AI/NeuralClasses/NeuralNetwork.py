@@ -33,11 +33,9 @@ class NeuralNetwork():
         else:
             self.layers = layers
 
-    def forward(self, inputs, use_final_activation=True):
-        self.layers[0].forward(inputs)
-        for i in range(len(self.layers)-2): self.layers[i+1].forward(self.layers[i].output)
-        if use_final_activation: self.layers[len(self.layers)-1].forward(self.layers[len(self.layers)-2].output)
-        else: self.layers[len(self.layers)-1].forward(self.layers[len(self.layers)-2].output, use_activation=False)
+    def forward(self, inputs):
+        self.layers[0].forward(inputs, True)
+        for i in range(len(self.layers)-1): self.layers[i+1].forward(self.layers[i].output)
         return self.layers[len(self.layers)-1].output
     def train(self, m: float = 0.05) -> None:
         for layer in self.layers: layer.train(m)
@@ -85,12 +83,12 @@ class NeuralNetwork():
             else:
                 dot = layersOrdered[layer-1].weights.T
             lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
-    def distributionPropagation(self, error, output, learning_rate: float=1) -> None:
+    def distributionPropagation(self, expO, learning_rate: float=1) -> None:
         layersOrdered = self.layers.copy()
         outputLayer = layersOrdered[-1:][0]
         layersOrdered = layersOrdered[:-1]
         layersOrdered.reverse()
-        ldelta = outputLayer.distributionPropagation(error, learning_rate, True, output)
-        for layer in range(len(layersOrdered)):
-            # Stuff if needed
-            ldelta = layersOrdered[layer].distributionPropagation(error, learning_rate, pdelta=ldelta)
+        ldelta = outputLayer.distributionPropagation(expO, learning_rate, True)
+        for layer in range(len(layersOrdered)-1):
+            ldelta = layersOrdered[layer].distributionPropagation(ldelta, learning_rate)
+        layersOrdered[-1].distributionPropagation(ldelta, learning_rate, inputLayer=True)

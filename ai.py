@@ -1,142 +1,164 @@
 import numpy as np
+import math
 
-def sigmoid(x):
-    """Sigmoid activation function."""
-    return 1 / (1 + np.exp(-x))
+class SigmoidActivation():
+    @staticmethod
+    def forward(inputs):
+        if not isinstance(inputs, list) and not isinstance(inputs, np.ndarray):
+            return 1/(1+math.e**(-round(inputs, 6)))
+        else:
+            return np.array([SigmoidActivation.forward(i) for i in inputs])
+    @staticmethod
+    def toString():
+        return "Sigmoid"
+    @staticmethod
+    def derivative(inputs):
+        if not isinstance(inputs, list):
+            return SigmoidActivation.forward(inputs)*(1-SigmoidActivation.forward(inputs))
+        else:
+            return np.array([SigmoidActivation.derivative(i) for i in inputs])
 
-def sigmoid_derivative(sigmoid_output):
-    """Derivative of the sigmoid function given its output."""
-    return sigmoid_output * (1 - sigmoid_output)
+def clamp(low: float, num: float, high: float):
+    if num < low: return low
+    elif num > high: return high
+    else: return num
 
 class NeuralNetwork:
-    def __init__(self, input_dim, hidden_dim1, hidden_dim2, output_dim):
-        # First hidden layer parameters.
-        self.W1 = np.random.randn(input_dim, hidden_dim1) * 0.1
-        self.b1 = np.zeros((1, hidden_dim1))
-        # Second hidden layer parameters.
-        self.W2 = np.random.randn(hidden_dim1, hidden_dim2) * 0.1
-        self.b2 = np.zeros((1, hidden_dim2))
-        # Output layer parameters.
-        self.W3 = np.random.randn(hidden_dim2, output_dim) * 0.1
-        self.b3 = np.zeros((1, output_dim))
-
-    def forward(self, X):
+    def __init__(self, layer_sizes):
         """
-        Forward pass for a mini-batch of inputs X with shape (batch_size, input_dim).
-        The network architecture is:
-          Input -> Hidden Layer 1 (sigmoid) -> Hidden Layer 2 (sigmoid) ->
-          Output Layer (sigmoid) -> [Interpretation into mu and sigma] -> Sampling.
+        Initialize the neural network.
+        layer_sizes: list of integers specifying the size of each layer.
+                     For example, [2, 4, 6, 5, 4, 2] means:
+                     Input layer: 2 neurons,
+                     Hidden layer1: 4 neurons,
+                     Hidden layer2: 6 neurons,
+                     Hidden layer3: 5 neurons,
+                     Hidden layer4: 4 neurons,
+                     Output layer: 2 neurons (for μ and σ).
         """
-        self.X = X  # (batch_size, input_dim)
+        self.num_layers = len(layer_sizes)
+        self.weights = []
+        self.biases = []
+        
+        # Initialize weights with He initialization and biases with zeros.
+        for i in range(self.num_layers - 1):
+            weight = np.random.randn(layer_sizes[i], layer_sizes[i+1]) * np.sqrt(2.0 / layer_sizes[i])
+            bias = np.zeros((1, layer_sizes[i+1]))
+            self.weights.append(weight)
+            self.biases.append(bias)
 
-        # First hidden layer
-        self.z1 = np.dot(X, self.W1) + self.b1         # (batch_size, hidden_dim1)
-        self.a1 = sigmoid(self.z1)                     # (batch_size, hidden_dim1)
-
-        # Second hidden layer
-        self.z2 = np.dot(self.a1, self.W2) + self.b2     # (batch_size, hidden_dim2)
-        self.a2 = sigmoid(self.z2)                     # (batch_size, hidden_dim2)
-
-        # Output layer
-        self.z3 = np.dot(self.a2, self.W3) + self.b3     # (batch_size, output_dim)
-        #self.a3 = sigmoid(self.z3)                     # (batch_size, output_dim)
-        self.a3 = self.z3
-
-        # Interpret outputs:
-        #   a3[:, 0] is mu and a3[:, 1] (after exponentiation) is sigma.
-        self.mu = self.a3[:, 0]                        # (batch_size,)
-        self.sigma = np.exp(self.a3[:, 1])              # (batch_size,)
-
-        # Sample final output for each example.
-        batch_size = X.shape[0]
-        self.final_output = np.random.normal(self.mu, self.sigma, size=batch_size)
-        return self.final_output
-
-    def backward(self, target, learning_rate):
+    def forward(self, x):
         """
-        Backward pass for the mini-batch.
-        'target' can be a scalar or an array of shape (batch_size,).
-        Returns the average loss over the mini-batch.
+        Perform a forward pass through the network.
+        Returns a list of activations and the corresponding pre-activation values (zs).
         """
-        batch_size = self.X.shape[0]
-        # Compute Mean Squared Error loss per example and then average.
-        loss = np.mean((self.final_output - target)**2)
+        activations = [x]
+        zs = []  # Store all the linear combinations
+        a = x
+        for i in range(len(self.weights)):
+            z = np.dot(a, self.weights[i]) + self.biases[i]
+            # For the final layer, use a linear output.
+            if i == len(self.weights) - 1:
+                a = z  
+            else:
+                a = SigmoidActivation.forward(z)
+            activations.append(a)
+            zs.append(a)
+        return activations, zs
 
-        # Derivative of loss with respect to final output.
-        dL_dfinal = 2 * (self.final_output - target) / batch_size
+    def backward(self, activations, zs, delta_vector):
+        """
+        Backpropagate the error given the gradient vector at the output layer.
+        delta_vector: gradient of the loss with respect to the output layer (shape: 1x2)
+        Returns gradients for weights and biases.
+        """
+        grads_w = [None] * len(self.weights)
+        grads_b = [None] * len(self.biases)
+        
+        # Backpropagation from the output layer backward.
+        for l in range(len(self.weights) - 1, -1, -1):
+            a_prev = activations[l]  # activation from previous layer
+            print(a_prev, "\n", np.asarray(a_prev.T).shape, np.asarray(delta_vector).shape)
+            grads_w[l] = np.dot(a_prev.T, delta_vector)
+            grads_b[l] = delta_vector  # For a single example, this is fine
+            
+            if l > 0:
+                # Propagate error through the activation function of the previous layer.
+                delta_vector = np.dot(delta_vector, self.weights[l].T) * SigmoidActivation.derivative(zs[l-1])
+                
+        return grads_w, grads_b
 
-        # Heuristic gradient approximations for the stochastic sampling:
-        # d(final_output)/d(mu) = 1, and approximately:
-        # d(final_output)/d(sigma) ~ (final_output - mu) / sigma.
-        eps = 1e-8  # small constant to prevent division by zero
-        dL_dmu = dL_dfinal
-        dL_dsigma = dL_dfinal * (self.final_output - self.mu) / (self.sigma + eps)
+    def update_params(self, grads_w, grads_b, lr):
+        """Update weights and biases using gradient descent."""
+        for i in range(len(self.weights)):
+            self.weights[i] -= lr * grads_w[i]
+            self.biases[i] -= lr * grads_b[i]
 
-        # Now, a3 is the activated output, with:
-        # mu = a3[:, 0] and sigma = exp(a3[:, 1]), so:
-        # d(mu)/d(a3[:, 0]) = 1 and d(sigma)/d(a3[:, 1]) = exp(a3[:, 1]) = sigma.
-        dL_da3 = np.zeros_like(self.a3)
-        dL_da3[:, 0] = dL_dmu
-        dL_da3[:, 1] = dL_dsigma * self.sigma
-
-        # Backpropagate through the sigmoid activation at the output layer.
-        dL_dz3 = dL_da3 #* sigmoid_derivative(self.a3)  # (batch_size, output_dim)
-
-        # Gradients for the output layer parameters.
-        dL_dW3 = np.dot(self.a2.T, dL_dz3)              # (hidden_dim2, output_dim)
-        dL_db3 = np.sum(dL_dz3, axis=0, keepdims=True)    # (1, output_dim)
-
-        # Backpropagate into second hidden layer.
-        dL_da2 = np.dot(dL_dz3, self.W3.T)                # (batch_size, hidden_dim2)
-        dL_dz2 = dL_da2 * sigmoid_derivative(self.a2)     # (batch_size, hidden_dim2)
-
-        dL_dW2 = np.dot(self.a1.T, dL_dz2)                # (hidden_dim1, hidden_dim2)
-        dL_db2 = np.sum(dL_dz2, axis=0, keepdims=True)      # (1, hidden_dim2)
-
-        # Backpropagate into first hidden layer.
-        dL_da1 = np.dot(dL_dz2, self.W2.T)                # (batch_size, hidden_dim1)
-        dL_dz1 = dL_da1 * sigmoid_derivative(self.a1)     # (batch_size, hidden_dim1)
-
-        dL_dW1 = np.dot(self.X.T, dL_dz1)                 # (input_dim, hidden_dim1)
-        dL_db1 = np.sum(dL_dz1, axis=0, keepdims=True)      # (1, hidden_dim1)
-
-        # Update all parameters.
-        self.W3 -= learning_rate * dL_dW3
-        self.b3 -= learning_rate * dL_db3
-        self.W2 -= learning_rate * dL_dW2
-        self.b2 -= learning_rate * dL_db2
-        self.W1 -= learning_rate * dL_dW1
-        self.b1 -= learning_rate * dL_db1
-
-        return loss
-
-# -----------------------------
-# Example usage:
-# -----------------------------
-if __name__ == "__main__":
-    np.random.seed(42)  # for reproducibility
-
-    # Hyperparameters.
-    input_dim = 2
-    hidden_dim1 = 8      # first hidden layer neurons
-    hidden_dim2 = 3      # second hidden layer neurons (as requested)
-    output_dim = 2
-    learning_rate = 0.01
-    num_iterations = 100000
-    batch_size = 32
-
-    # Create the neural network.
-    nn = NeuralNetwork(input_dim, hidden_dim1, hidden_dim2, output_dim)
+# Function to perform one training step using negative log-likelihood loss.
+def train_step(nn, x, expected, lr=0.01):
+    """
+    Performs a training step.
+    The network outputs two values: μ and σ.
+    σ is transformed as: sigma_corrected = exp(σ) to enforce positivity.
+    Loss is defined as: L = σ + (expected - μ)^2/(2*exp(2σ))
+    """
+    # Forward pass.
+    activations, zs = nn.forward(x)
+    output = activations[-1]  # Final layer output: shape (1,2)
     
-    # For demonstration, we use a fixed target (or an array of targets).
-    target = 0.5
+    # Separate outputs: first element is μ, second is σ (before transformation).
+    mu = output[0, 0]
+    sigma = output[0, 1]
+    
+    # Transform sigma to ensure positivity.
+    sigma_corrected = np.exp(sigma)
 
-    for i in range(num_iterations):
-        # Generate a mini-batch of random inputs.
-        X_batch = np.random.randn(batch_size, input_dim)
-        # Forward pass.
-        outputs = nn.forward(X_batch)
-        # Backward pass.
-        loss = nn.backward(target, learning_rate)
-        if i % 100 == 0:
-            print(f"Iteration {i}, Loss: {loss:.6f}")
+    a = 1e-8
+    
+    # Compute negative log likelihood loss (ignoring constant terms).
+    loss = sigma + (expected - mu)**2 / (2 * np.exp(2 * (sigma + a)))
+    
+    # Compute gradients with respect to μ and σ.
+    grad_mu = -(expected - mu) / (np.exp(2 * (sigma + a)))
+    grad_sigma = 1 - (expected - mu)**2 / (np.exp(2 * (sigma + a)))
+    
+    # Form the gradient vector for the final layer.
+    delta_vector = np.array([[grad_mu, grad_sigma]])
+    
+    # Backpropagate the error.
+    grads_w, grads_b = nn.backward(activations, zs, delta_vector)
+    nn.update_params(grads_w, grads_b, lr)
+    
+    return loss, mu, sigma, sigma_corrected
+
+# Example usage:
+if __name__ == '__main__':
+    # Set random seed for reproducibility.
+    np.random.seed(42)
+    
+    # Define network architecture: [input, layer1, layer2, layer3, layer4, output]
+    layer_sizes = [3, 4, 6, 5, 7, 2]
+    nn = NeuralNetwork(layer_sizes)
+    
+    # Example inputs for the network
+    x = [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], [1, 1, 0], [1, 1, 1]]
+    # Define a target value for the final output (e.g., supervised learning target)
+    target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
+    
+    # Training loop.
+    epoch = 1000000
+    #for epoch in range(epochs):
+    loss, mu, sigma, sigma_corrected = train_step(nn, np.array([x[epoch%(len(x))]]), target[epoch%(len(x))], lr=0.01)
+    #    if (epoch + 1) % 20000 == 0:
+    #        Output = []
+    #        for a in x:
+    #            Output.append(nn.forward([a])[0][-1][0])
+    #        Output = np.array(Output)
+    #        print(f"Epoch: {epoch+1:4d} {Output=}")
+    
+    # Final forward pass for demonstration.
+    print("\nFinal outputs:")
+    for i, o in zip(x, target):
+        p = nn.forward(np.array([i]))[0][-1][0]
+        p[1] = np.exp(p[1])
+        print(f"Input: {i} output: {np.random.normal(p[0], p[1])} Expected output: {o}")
