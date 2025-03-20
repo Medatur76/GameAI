@@ -5,7 +5,7 @@ class SigmoidActivation(Activation):
     @staticmethod
     def forward(inputs):
         if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
-            return 1/(1+math.e**(-inputs))
+            return 1/(1+math.e**(-round(inputs, 6)))
         else:
             return [SigmoidActivation.forward(i) for i in inputs]
     @staticmethod

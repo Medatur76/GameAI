@@ -28,13 +28,13 @@ class NeuralNetwork:
         """
         Initialize the neural network.
         layer_sizes: list of integers specifying the size of each layer.
-                     For example, [2, 4, 6, 5, 4, 2] means:
-                     Input layer: 2 neurons,
-                     Hidden layer1: 4 neurons,
-                     Hidden layer2: 6 neurons,
-                     Hidden layer3: 5 neurons,
-                     Hidden layer4: 4 neurons,
-                     Output layer: 2 neurons (for μ and σ).
+                    For example, [2, 4, 6, 5, 4, 2] means:
+                    Input layer: 2 neurons,
+                    Hidden layer1: 4 neurons,
+                    Hidden layer2: 6 neurons,
+                    Hidden layer3: 5 neurons,
+                    Hidden layer4: 4 neurons,
+                    Output layer: 2 neurons (for μ and σ).
         """
         self.num_layers = len(layer_sizes)
         self.weights = []
@@ -78,7 +78,6 @@ class NeuralNetwork:
         # Backpropagation from the output layer backward.
         for l in range(len(self.weights) - 1, -1, -1):
             a_prev = activations[l]  # activation from previous layer
-            print(a_prev, "\n", np.asarray(a_prev.T).shape, np.asarray(delta_vector).shape)
             grads_w[l] = np.dot(a_prev.T, delta_vector)
             grads_b[l] = delta_vector  # For a single example, this is fine
             
@@ -146,15 +145,15 @@ if __name__ == '__main__':
     target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
     
     # Training loop.
-    epoch = 1000000
-    #for epoch in range(epochs):
-    loss, mu, sigma, sigma_corrected = train_step(nn, np.array([x[epoch%(len(x))]]), target[epoch%(len(x))], lr=0.01)
-    #    if (epoch + 1) % 20000 == 0:
-    #        Output = []
-    #        for a in x:
-    #            Output.append(nn.forward([a])[0][-1][0])
-    #        Output = np.array(Output)
-    #        print(f"Epoch: {epoch+1:4d} {Output=}")
+    epochs = 1000000
+    for epoch in range(epochs):
+        loss, mu, sigma, sigma_corrected = train_step(nn, np.array([x[epoch%(len(x))]]), target[epoch%(len(x))], lr=0.001)
+        if (epoch + 1) % 20000 == 0:
+            Output = []
+            for a in x:
+                Output.append(nn.forward([a])[0][-1][0])
+            Output = np.array(Output)
+            print(f"Epoch: {epoch+1:4d} {Output=}")
     
     # Final forward pass for demonstration.
     print("\nFinal outputs:")

@@ -93,8 +93,7 @@ class NeuralLayer():
         if inputLayer: a = np.array([self.input])
         updateWeight = np.dot(a.T, delta)
         updateBiases = delta
-        if not inputLayer: delta = np.dot(delta, self.weights.T) * SigmoidActivation.derivative(self.input[1])
-        #print(delta.shape, a.shape, updateWeight.shape, self.weights.shape, f"({self.nInputs}, {self.nOutputs})", outputLayer, inputLayer)
+        if not inputLayer: delta = np.dot(delta, self.weights.T) * self.activation.derivative(self.input[1])
         self.weights -= learning_rate * updateWeight
         self.biases -= learning_rate * updateBiases
         return delta

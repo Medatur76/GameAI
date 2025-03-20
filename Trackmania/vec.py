@@ -15,12 +15,19 @@ target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
 iterations = 1000000
 
 with alive_bar(iterations, title="Training!") as bar:
-    for _ in range(iterations):
-        i = np.random.randint(len(x))
-        nn.forward(x[i])
-        nn.distributionPropagation(target[i], 0.1)
+    for i in range(iterations):
+        output = nn.forward(x[i%(len(x))])
+        nn.distributionPropagation(target[i%(len(x))], 0.1)
+        if i%20000==0:
+            l = []
+            for b, c in zip(x, target):
+                o = nn.forward(b)
+                d = np.random.normal(o[0], np.exp(o[1]))
+                l.append((d - c)**2)
+            l = np.array(l)
+            print(f"Loss = {l.sum()}")
         bar()
 
 print("\nFinal Outputs: ")
 for a, i in zip(x, target):
-    print(f"Inputs: {a} AI Output: {nn.forward(a)} Expected Output: {i}")
+    print(f"Inputs: {a} AI Output: {nn.forward(a)[0][0]} Expected Output: {i}")

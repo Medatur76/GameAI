@@ -83,12 +83,12 @@ class NeuralNetwork():
             else:
                 dot = layersOrdered[layer-1].weights.T
             lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
-    def distributionPropagation(self, expO, learning_rate: float=1) -> None:
+    def distributionPropagation(self, expO, learning_rate: float) -> None:
         layersOrdered = self.layers.copy()
         outputLayer = layersOrdered[-1:][0]
         layersOrdered = layersOrdered[:-1]
         layersOrdered.reverse()
-        ldelta = outputLayer.distributionPropagation(expO, learning_rate, True)
+        ldelta = outputLayer.distributionPropagation(expO, learning_rate, outputLayer=True)
         for layer in range(len(layersOrdered)-1):
             ldelta = layersOrdered[layer].distributionPropagation(ldelta, learning_rate)
         layersOrdered[-1].distributionPropagation(ldelta, learning_rate, inputLayer=True)

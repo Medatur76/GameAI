@@ -1,6 +1,1 @@
-import numpy as np
-
-x = np.array([[1, 2]])
-y = np.array([[1, 2, 3, 4, 5, 6, 7]])
-
-print(np.dot(y.T, x))
+print(chr(round(ord(min(str(type(tuple))))*len(str(not()))*((ord(min(str(not())))+len(str(filter)))*sum(range(len(str(not(not())))))+sum(range(len(str(not(not())))))/(ord(min(str(not())))+len(str(filter)))))))
