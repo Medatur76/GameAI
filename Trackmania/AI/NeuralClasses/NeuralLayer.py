@@ -51,18 +51,19 @@ class NeuralLayer():
                 self.activation = activation
     def forward(self, inputs, inputLayer: bool = False):
         self.input = np.array(inputs)
-        if not inputLayer: inputs = inputs[0]
-        if not self.multiActivations: self.output = self.activation.forward(np.dot(inputs, self.weights) + self.biases)
+        if not inputLayer: ainputs = inputs[0]
+        else: ainputs = inputs
+        if not self.multiActivations: poutput = self.activation.forward(np.dot(ainputs, self.weights) + self.biases)
         else:
             outputs = []
             for o in range(len(self.biases[0])):
                 output = self.biases[0][o]
                 for w in range(self.nInputs):
-                    output += self.weights[w][o]*inputs[0][w]
+                    output += self.weights[w][o]*ainputs[0][w]
                 outputs.append(self.activations[o].forward(output))
-            self.output = outputs
+            poutput = outputs
 
-        self.output = [self.output, np.dot(inputs, self.weights) + self.biases]
+        self.output = [poutput, np.dot(ainputs, self.weights) + self.biases]
     def backward(self, error, learning_rate: float):
         delta = None
         if self.multiActivations:
@@ -82,18 +83,12 @@ class NeuralLayer():
     def revert(self):
         self.weights = self.pWeights.copy()
         self.biases = self.pBiases.copy()
-    def distributionPropagation(self, delta: np.array = None, learning_rate: float = 1, outputLayer: bool = False, inputLayer: bool = False):
-        if outputLayer:
-            if not self.nOutputs == 2:
-                raise Exception("Need to update this to fit all output sizes")
-            grad_mu = -(delta - self.output[0][0][0]) / (np.exp(2 * (self.output[0][0][1] + 1e-8)))
-            grad_sigma = 1 - (delta - self.output[0][0][0])**2 / (np.exp(2 * (self.output[0][0][1] + 1e-8)))
-            delta = np.array([[grad_mu, grad_sigma]])
+    def distributionPropagation(self, delta: np.ndarray = None, learning_rate: float = 1, inputLayer: bool = False, nextLayer = None) -> np.ndarray:
         a = self.input[0]
         if inputLayer: a = np.array([self.input])
         updateWeight = np.dot(a.T, delta)
         updateBiases = delta
-        if not inputLayer: delta = np.dot(delta, self.weights.T) * self.activation.derivative(self.input[1])
+        if not inputLayer: delta = np.dot(delta, self.weights.T) * self.activation.derivative(self.output[1])
         self.weights -= learning_rate * updateWeight
         self.biases -= learning_rate * updateBiases
         return delta

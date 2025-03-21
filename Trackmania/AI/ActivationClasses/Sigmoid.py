@@ -1,13 +1,13 @@
 from AI.ActivationClasses.Activation import Activation
-import math
-from numpy import ndarray
+from math import e
+from numpy import ndarray, array
 class SigmoidActivation(Activation):
     @staticmethod
     def forward(inputs):
         if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
-            return 1/(1+math.e**(-round(inputs, 6)))
+            return 1/(1+e**(-SigmoidActivation.clamp(inputs)))
         else:
-            return [SigmoidActivation.forward(i) for i in inputs]
+            return array([SigmoidActivation.forward(i) for i in inputs])
     @staticmethod
     def toString():
         return "Sigmoid"
@@ -16,4 +16,4 @@ class SigmoidActivation(Activation):
         if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
             return SigmoidActivation.forward(inputs)*(1-SigmoidActivation.forward(inputs))
         else:
-            return [SigmoidActivation.derivative(i) for i in inputs]
+            return array([SigmoidActivation.derivative(i) for i in inputs])

@@ -3,6 +3,7 @@ from AI.ActivationClasses.Activations import *
 from typing_extensions import TypeAlias
 from typing import Literal
 import json
+import numpy as np
 
 preset: TypeAlias = Literal["Yosh", "Racer", "None"]
 
@@ -83,12 +84,7 @@ class NeuralNetwork():
             else:
                 dot = layersOrdered[layer-1].weights.T
             lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
-    def distributionPropagation(self, expO, learning_rate: float) -> None:
-        layersOrdered = self.layers.copy()
-        outputLayer = layersOrdered[-1:][0]
-        layersOrdered = layersOrdered[:-1]
-        layersOrdered.reverse()
-        ldelta = outputLayer.distributionPropagation(expO, learning_rate, outputLayer=True)
-        for layer in range(len(layersOrdered)-1):
-            ldelta = layersOrdered[layer].distributionPropagation(ldelta, learning_rate)
-        layersOrdered[-1].distributionPropagation(ldelta, learning_rate, inputLayer=True)
+    def distributionPropagation(self, delta: float, learning_rate: float) -> None:
+        ldelta: np.ndarray = np.array([[delta, delta]])
+        for layer in range(len(self.layers) - 1, -1 , -1):
+            ldelta = self.layers[layer].distributionPropagation(ldelta, learning_rate, inputLayer=layer==0, nextLayer=self.layers[layer-1])
