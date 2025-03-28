@@ -17,18 +17,19 @@ x = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], 
 target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
 
 iterations = 1000 * len(x) * 8
-#iterations = 1
+iterations = 1
 
 with alive_bar(iterations, title="Training!") as bar:
     for i in range(iterations):
-        output = nn.forward(x[i%(len(x))])[1][-1]
-        output[1] = math.e**np.log(np.exp(output[1]))
-        nn.distributionPropagation((np.random.normal(output[0], output[1]) - target[i%(len(x))]) * 2, 0.001)
+        for inp, exp in zip(x, target):
+            output = nn.forward(inp.reshape(1, 3))[1][-1]
+            output[1] = math.e**np.log(np.exp(np.clip(output[1], None, 20)))
+            nn.distributionPropagation((np.random.normal(output[0], output[1]) - target[i%(len(x))]) * 2, 0.001)
         if i%200==0:
             l = []
             for b, c in zip(x, target):
                 o = nn.forward(b)[0][-1]
-                d = np.random.normal(o[0], math.e**np.log(np.exp(o[1])))
+                d = np.random.normal(o[0], math.e**np.log(np.exp(np.clip(o[1], None, 20))))
                 l.append((d - c)**2)
             l = np.array(l)
             print(f"Loss = {l.sum()}")

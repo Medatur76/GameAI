@@ -85,6 +85,6 @@ class NeuralNetwork():
                 dot = layersOrdered[layer-1].weights.T
             lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
     def distributionPropagation(self, delta: float, learning_rate: float) -> None:
-        ldelta: np.ndarray = np.array([[delta, delta]])
+        ldelta: np.ndarray = np.array([[delta, delta/5]])
         for layer in range(len(self.layers) - 1, -1 , -1):
             ldelta = self.layers[layer].distributionPropagation(ldelta, learning_rate, inputLayer=layer==0, nextLayer=self.layers[layer-1])

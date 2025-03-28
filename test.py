@@ -8,3 +8,4 @@ x = math.nan
 print(f"{x=}")
 print(math.isnan(x))
 print(abs(x)/x)
+print((1.2701555440209549+1)**math.e)
