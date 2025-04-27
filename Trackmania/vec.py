@@ -3,9 +3,14 @@ from AI.ActivationClasses.Activations import *
 from alive_progress import alive_bar
 import numpy as np
 import math
+import warnings
+warnings.filterwarnings("error")
 
 # Set random seed for reproducibility.
 #np.random.seed(42)
+
+def stable_exp(x, clip_value=20):
+    return math.e**np.log(np.exp(np.clip(x, 1e-8, clip_value)))
 
 nn = NeuralNetwork(3, 6, 2, output_activations=[Activation], base_activation=SigmoidActivation)
 
@@ -17,19 +22,18 @@ x = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], 
 target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
 
 iterations = 1000 * len(x) * 8
-iterations = 1
+#iterations = 1
 
 with alive_bar(iterations, title="Training!") as bar:
     for i in range(iterations):
-        for inp, exp in zip(x, target):
-            output = nn.forward(inp.reshape(1, 3))[1][-1]
-            output[1] = math.e**np.log(np.exp(np.clip(output[1], None, 20)))
-            nn.distributionPropagation((np.random.normal(output[0], output[1]) - target[i%(len(x))]) * 2, 0.001)
+        output = nn.forward(x[i%len(x)].reshape(1, 3))[1][0]
+        output[1] = stable_exp(output[1])
+        nn.distributionPropagation((np.random.normal(output[0], output[1]) - target[i%len(x)]) * 2, 0.0001)
         if i%200==0:
             l = []
             for b, c in zip(x, target):
                 o = nn.forward(b)[0][-1]
-                d = np.random.normal(o[0], math.e**np.log(np.exp(np.clip(o[1], None, 20))))
+                d = np.random.normal(o[0], stable_exp(o[1]))
                 l.append((d - c)**2)
             l = np.array(l)
             print(f"Loss = {l.sum()}")

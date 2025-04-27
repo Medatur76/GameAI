@@ -52,7 +52,7 @@ class NeuralNetwork:
         self.layers = []
         for i in range(len(layer_sizes) - 1):
             if i < len(layer_sizes) - 2:
-                self.layers.append(NeuralLayer(layer_sizes[i], layer_sizes[i+1], act=custom_activation, act_deriv=custom_activation_derivative))
+                self.layers.append(NeuralLayer(layer_sizes[i], layer_sizes[i+1], act=activation, act_deriv=activation_derivative))
             else:
                 self.layers.append(NeuralLayer(layer_sizes[i], layer_sizes[i+1], act=None, act_deriv=None))
 
@@ -80,7 +80,7 @@ def train_step(nn, x, expected, lr=0.01):
     return loss, mu, sigma, sigma_corrected, sampled_output
 
 if __name__ == '__main__':
-    np.random.seed(42)  
+    #np.random.seed(42)  
     layer_sizes = [3, 4, 6, 5, 4, 2]
     nn = NeuralNetwork(layer_sizes)
     x_train: np.ndarray[list[int]] = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], [1, 1, 0], [1, 1, 1]])
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         epoch_loss = 0
         for x_val, y_val in zip(x_train, y_train):
             x_val = x_val.reshape(1, 3)
-            loss, mu, sigma, sigma_corrected, sampled = train_step(nn, x_val, y_val, lr=0.01)
+            loss, mu, sigma, sigma_corrected, sampled = train_step(nn, x_val, y_val, lr=0.001)
             epoch_loss += loss
         if (epoch + 1) % 5000 == 0:
             print(f"Epoch {epoch+1:4d}: Avg Loss = {epoch_loss/4:.4f}")
@@ -100,4 +100,4 @@ if __name__ == '__main__':
         output = nn.forward(x_val)[-1]
         mu, sigma = output[0, 0], output[0, 1]
         sigma_corrected = stable_exp(sigma)
-        print(f"Input: {x_val.flatten()}, Predicted: {np.random.normal(mu, sigma_corrected):.4f} ({mu:.4f}), Target: {y_val}")
+        print(f"Input: {x_val.flatten()}, Predicted: {np.random.normal(mu, sigma_corrected):.4f} ({mu:.4f} and {sigma_corrected:.4f}), Target: {y_val}")

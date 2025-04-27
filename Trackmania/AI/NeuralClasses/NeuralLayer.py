@@ -83,9 +83,9 @@ class NeuralLayer():
     def revert(self):
         self.weights = self.pWeights.copy()
         self.biases = self.pBiases.copy()
-    def distributionPropagation(self, delta: np.ndarray = None, learning_rate: float = 1, inputLayer: bool = False, nextLayer = None) -> np.ndarray:
+    def distributionPropagation(self, delta: np.ndarray, learning_rate: float = 1) -> np.ndarray:
         delta *= self.activation.derivative(self.output[1])
-        updateWeight = np.dot(self.input[0].T if not inputLayer else np.array([self.input]).T, delta)
+        updateWeight = np.dot(self.input[0].T if self.input.shape != (1, 3) else self.input.T, delta)
         updateBiases = delta
         self.weights -= learning_rate * updateWeight
         self.biases -= learning_rate * updateBiases

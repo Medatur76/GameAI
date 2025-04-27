@@ -23,10 +23,7 @@ void OnKeyPress(bool down, VirtualKey key) {
 
 void Main() {
     auto server = Net::Socket();
-    while (!server.Listen("127.0.0.1", 9000)) {
-        yield();
-    }
-    while(!server.IsReady()){
+    while (!server.Listen("127.0.0.1", 9000) || !server.IsReady()) {
         yield();
     }
     print("Server started!\r\n");

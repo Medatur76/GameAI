@@ -10,8 +10,8 @@ class Activation():
     def toString() -> str:
         return "Activation"
     @staticmethod
-    def derivative(_):
-        return 1
+    def derivative(input):
+        return input
     @staticmethod
     def clamp(num):
         if abs(num) > 2**5-10: return (2**5-10)*(abs(num)/num)
