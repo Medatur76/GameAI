@@ -1,6 +1,5 @@
 from AI.ActivationClasses.Activation import Activation
-from math import e
-from numpy import ndarray, tanh, array
+from numpy import tanh
 
 class HyperTangActivation(Activation):
     @staticmethod
@@ -16,7 +15,8 @@ class HyperTangActivation(Activation):
         return "Hyperbolic"
     @staticmethod
     def derivative(inputs):
-        if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
-            return 1-(HyperTangActivation.forward(inputs)**2)
-        else:
-            return array([HyperTangActivation.derivative(i) for i in inputs])
+        #if not isinstance(inputs, list) and not isinstance(inputs, ndarray):
+        #    return 1-(HyperTangActivation.forward(inputs)**2)
+        #else:
+        #    return array([HyperTangActivation.derivative(i) for i in inputs])
+        return 1.0 - tanh(inputs)**2

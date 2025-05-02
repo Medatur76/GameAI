@@ -35,7 +35,7 @@ class NeuralNetwork():
             self.layers = layers
 
     def forward(self, inputs):
-        self.layers[0].forward(inputs, True)
+        self.layers[0].forward(inputs)
         for i in range(len(self.layers)-1): self.layers[i+1].forward(self.layers[i].output)
         return self.layers[len(self.layers)-1].output
     def train(self, m: float = 0.05) -> None:
@@ -72,18 +72,11 @@ class NeuralNetwork():
             data = data[:-1] + "\r\n\t\t\t\t]\r\n\t\t\t},"
         data = data[:-1] + "\r\n\t\t]\r\n\t}\r\n}"
         file.write(data)
+        file.close()
     def backpropagate(self, error, learning_rate: float=1) -> None:
-        layersOrdered = self.layers.copy()
-        outputLayer = layersOrdered[-1:][0]
-        layersOrdered = layersOrdered[:-1]
-        layersOrdered.reverse()
-        lastLayerDelta = outputLayer.backward(error, learning_rate)
-        for layer in range(len(layersOrdered)):
-            if layer == 0:
-                dot = outputLayer.weights.T
-            else:
-                dot = layersOrdered[layer-1].weights.T
-            lastLayerDelta = layersOrdered[layer].backward(lastLayerDelta.dot(dot), learning_rate)
+        ldelta: np.ndarray = np.array([[error, error/5]])
+        for layer in reversed(self.layers):
+            ldelta = layer.backward(ldelta, learning_rate)
     def distributionPropagation(self, delta: float, learning_rate: float) -> None:
         ldelta: np.ndarray = np.array([[delta, delta/5]])
         for layer in reversed(self.layers):

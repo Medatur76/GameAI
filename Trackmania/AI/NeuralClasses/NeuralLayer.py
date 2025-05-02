@@ -21,10 +21,6 @@ class NeuralLayer():
             layer.biases = np.array([data["biases"]])
             return layer
     def __init__(self, n_inputs: int, n_outputs: int, activation: Activation, activations: list[Activation]=None, weights = None, biases = None, isFromData: bool = False):
-        if weights is None:
-            weights = []
-        if biases is None:
-            biases = []
         if not isFromData:
             self.multiActivations: bool = False
             self.activation: Activation = activation
@@ -49,32 +45,24 @@ class NeuralLayer():
             else:
                 self.multiActivations = False
                 self.activation = activation
-    def forward(self, inputs, inputLayer: bool = False):
+    def forward(self, inputs):
         self.input = np.array(inputs)
-        if not inputLayer: ainputs = inputs[0]
-        else: ainputs = inputs
-        if not self.multiActivations: poutput = self.activation.forward(np.dot(ainputs, self.weights) + self.biases)
+        if not self.multiActivations: self.output = self.activation.forward(np.dot(self.input, self.weights) + self.biases)
         else:
             outputs = []
             for o in range(len(self.biases[0])):
                 output = self.biases[0][o]
                 for w in range(self.nInputs):
-                    output += self.weights[w][o]*ainputs[0][w]
+                    output += self.weights[w][o]*self.input[0][w]
                 outputs.append(self.activations[o].forward(output))
-            poutput = outputs
+            self.output = outputs
 
-        self.output = [poutput, np.dot(ainputs, self.weights) + self.biases]
-    def backward(self, error, learning_rate: float):
-        delta = None
-        if self.multiActivations:
-            delta = error[0] * self.activations[0].derivative(self.output[0])
-            for i in range(len(self.output)-1):
-                delta = np.concatenate([delta, error[i+1] * self.activations[i+1].derivative(self.output[i+1])], axis=1)
-        else:
-            delta = error * np.array(self.activation.derivative(self.output))
-        self.weights += self.input.T.dot(delta) * learning_rate
-        self.biases += np.sum(delta, axis=0, keepdims=True) * learning_rate
-        return delta
+        self.z = np.dot(self.input, self.weights) + self.biases
+    def backward(self, error, learning_rate: float = 1):
+        delta_z = error * self.activation.derivative(self.z)
+        self.weights -= np.dot(self.input.T if not self.input.shape == (self.nInputs,) else self.input.reshape(self.nInputs, 1), delta_z) * learning_rate
+        self.biases -= delta_z * learning_rate
+        return np.dot(delta_z, self.weights.T)
     def train(self, m: float = 0.05):
         self.pWeights = self.weights.copy()
         self.pBiases = self.biases.copy()
@@ -84,9 +72,9 @@ class NeuralLayer():
         self.weights = self.pWeights.copy()
         self.biases = self.pBiases.copy()
     def distributionPropagation(self, delta: np.ndarray, learning_rate: float = 1) -> np.ndarray:
-        delta *= self.activation.derivative(self.output[1])
-        updateWeight = np.dot(self.input[0].T if self.input.shape != (1, 3) else self.input.T, delta)
-        updateBiases = delta
+        delta_z = delta * self.activation.derivative(self.z)
+        updateWeight = np.dot(self.input.T if self.input.shape != (3, ) else self.input.reshape(3, 1), delta)
+        updateBiases = delta_z
         self.weights -= learning_rate * updateWeight
         self.biases -= learning_rate * updateBiases
-        return np.dot(delta, self.weights.T)
+        return np.dot(delta_z, self.weights.T)
