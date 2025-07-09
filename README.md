@@ -1,3 +1,6 @@
+# THIS IS A WORK IN PROGRESS
+Im currently working on coding PPO and I am stuck so this repo wont be finished for a while.
+
 # Gaming AIs
 I love coding an I love video games so what better way to bridge them then some good ol gaming code!  
 This repo contains all of the gaming AIs I make. Heres a list of them:  
