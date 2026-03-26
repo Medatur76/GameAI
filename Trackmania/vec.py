@@ -41,7 +41,7 @@ with alive_bar(iterations, title="Training!") as bar:
 
 print("\nFinal Outputs: ")
 for a, i in zip(x, target):
-    print(f"Inputs: {a} AI Output: {nn.forward(a)[0]} Expected Output: {i}")
+    print(f"Inputs: {a} AI Output: {nn.forward(a)} Expected Output: {i}")
 
 print(f"Inputs: [3 2 5] AI Output: {nn.forward(np.array([3,2,5]))[0]}")
 nn.save("w")
