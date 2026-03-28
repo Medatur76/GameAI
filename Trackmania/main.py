@@ -1,6 +1,5 @@
 
 from AI.Training.Training import *
-from AI.ActivationClasses.Activation import *
 from AI.Training.Inputs import *
 from Server.Server import run
 import pydirectinput, threading, time

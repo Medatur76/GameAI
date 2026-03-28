@@ -1,6 +1,6 @@
 from AI.Training.Inputs import getInputs
-from AI.ActivationClasses.Activation import Activation
-from AI.NeuralClasses.NeuralNetwork import NeuralNetwork, preset
+from Library.Activations import Activation
+from Library.NeuralClasses import NeuralNetwork
 import numpy as np
 import time, pydirectinput, math
 
