@@ -2,7 +2,7 @@ from AI.Training.Training import *
 from AI.Training.Inputs import *
 from Server.Server import run
 import pydirectinput, threading, time
-
+import TUI
 
 class Main:
     nextUpKeys: list[str] = []

@@ -34,7 +34,7 @@ class HyperbolicTangent(Activation):
 class BinaryStep(Activation):
     @staticmethod
     def forward(x):
-        return np.max(np.min(np.round(x), 1), 0)
+        return np.where(x < 0, 0, 1)
     @staticmethod
     def derivative(x):
         return np.zeros_like(x)

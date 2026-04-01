@@ -10,6 +10,7 @@ This repo contains all of the gaming AIs I make. Heres a list of them:
 
 * [Trackmania](#trackmania)
 * [Rocket League](#rocket-league)
+* [War Thunder](#war-thunder)
 
 ## Trackmania
 
@@ -43,5 +44,9 @@ Instructions:
 5. Press J and watch the training
 
 ## Rocket League
+
+Currently in planning phase
+
+## War Thunder
 
 Currently in planning phase
