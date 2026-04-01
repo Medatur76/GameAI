@@ -94,14 +94,13 @@ class Training():
         pydirectinput.typewrite(current, 0.1)
         pydirectinput.press(['down', 'enter', 'enter', 'del'])
         return score
-    def genTrain(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, generations: int=1, ais: int = 1, nnpreset: preset = None):
+    def genTrain(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, generations: int=1, ais: int = 1):
         """Trains the AI by running a number of random neural networks (the ais input times 100) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 100, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
         self.isGen = True
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
         print("Started!")
-        if nnpreset == None: bestNetworks = [NeuralNetwork(16, n_layers, 4, output_activations, base_activation) for _ in range(ais*100)]
-        else: bestNetworks = [NeuralNetwork.fromPreset(nnpreset) for _ in range(ais*100)]
+        bestNetworks = [NeuralNetwork(16, n_layers, 4, output_activations, base_activation) for _ in range(ais*100)]
         pydirectinput.press('del')
         for g in range(generations):
             self.currentGen = g+1
@@ -119,15 +118,12 @@ class Training():
                     bestNetworks.append(n)
         return bestNetworks[0]
 
-    def train(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, runs: int=100, preset: preset = None):
+    def train(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, runs: int=100):
         """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than the last reward. Will try back propagation to make good adjustments it the reward is good."""
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
         print("Started!")
-        if preset == None:
-            nn = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
-        else:
-            nn = NeuralNetwork.fromPreset(preset)
+        nn = NeuralNetwork(16, n_layers, 4, output_activations, base_activation)
         lastScore = 0
         pydirectinput.press('del')
         if runs == None or runs == -1:
@@ -145,20 +141,16 @@ class Training():
                 if (score > lastScore): lastScore = score
                 else: nn.revert()
         return nn
-    def trainPPO(self, n_layers: int, output_activations: list[Activation], coach_output_activation: Activation, base_activation: Activation=Activation, coach_base_activations: Activation=Activation, episodes: int=100, preset: preset = None, coach_preset: preset = None):
+    def trainPPO(self, n_layers: int, output_activations: list[Activation], coach_output_activation: Activation, base_activation: Activation=Activation, coach_base_activations: Activation=Activation, episodes: int=100):
         """PPO Training for the network."""
+        print("Waiting")
+        while not getInputs()[1][2]: time.sleep(0.1)
+        print("Started!")
         
         decayFactor = 0.95
 
-        if preset == None:
-            driver = NeuralNetwork(16, n_layers, 8, output_activations, base_activation)
-            coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
-        else:
-            if not coach_preset == None:
-                coach = NeuralNetwork.fromPreset(coach_preset)
-            else:
-                coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
-            driver = NeuralNetwork.fromPreset(preset)
+        driver = NeuralNetwork(16, n_layers, 8, output_activations, base_activation)
+        coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
 
         for e in range(episodes):
             episode: list[tuple] = []
@@ -174,10 +166,11 @@ class Training():
                 i = 0
 
                 for _ in range(4):
-                    action.append(np.random.normal(output[i], math.e**np.log(np.exp(output[i+1]))))
+                    action.append(np.random.normal(output[i], np.exp(np.log(output[i+1]))))
                     i += 2
 
                 keys = []
+                #Why equals?
                 if action[0] == 1: 
                     keys.append('w')
                 if action[1] == 1: 

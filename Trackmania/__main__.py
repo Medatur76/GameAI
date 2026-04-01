@@ -1,38 +1,67 @@
-from Library.NeuralClasses import NeuralNetwork
-import Library.Activations as Activations
-from alive_progress import alive_bar
-import numpy as np
-import math
-import warnings
-warnings.filterwarnings("error")
+from AI.Training.Training import *
+from AI.Training.Inputs import *
+from Server.Server import run
+import pydirectinput, threading, time
 
-# Set random seed for reproducibility.
-np.random.seed(42)
 
-def stable_exp(x, clip_value=20):
-    return math.e**np.log(np.exp(np.clip(x, 1e-8, clip_value)))
+class Main:
+    nextUpKeys: list[str] = []
+    train = Training()
 
-nn = NeuralNetwork(7, 3, 2, Activations.HyperbolicTangent)
+    def pressKeys(self, keys: list[str]) -> None:
+        for key in keys:
+            try:
+                self.nextUpKeys.remove(key)
+                keys.remove(key)
+            except:
+                pass
+        for key in self.nextUpKeys:
+            pydirectinput.keyUp(key)
+        self.nextUpKeys.clear()
+        for key in keys:
+            pydirectinput.keyDown(key)
+        self.nextUpKeys = keys.copy()
 
-# error: 2 * (final_output - target)
+    def run(self) -> None:
+        time.sleep(0.1)
+        # Inputs:
+        # 15 - Distance
+        # 1 - Speed
+        fileExisis: bool
+        try:
+            open("Racer.json", "r")
+            fileExisis = True
+        except:
+            fileExisis = False
+        if fileExisis and input("Would you like to use the \'Racer.json\' neural network? [y/N] ") == 'y':
+                racer = NeuralNetwork.fromFile("Racer.json")
+        else:
+            method = input("Training method [trial/gen/ppo]: ")
+            if method == "trial":
+                racer = self.train.train()
+            elif method == "gen":
+                racer = self.train.genTrain()
+            elif method == "ppo":
+                racer = self.train.trainPPO()
+        racer.save()
+        print("Saved")
+        while not getInputs()[1][2]: time.sleep(0.1)
+        while getInputs()[1][2] and not getInputs()[1][1]:
+            data, _ = getInputs()
 
-# Example inputs for the network
-x = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [0, 1, 0], [0, 1, 1], [1, 1, 0], [1, 1, 1]])
-# Define a target value for the final output (e.g., supervised learning target)
-target = np.array([1, 0, 0, 1, 0, 0, 0, 1])
+            output = racer.forward(data)
+            keys = []
+            if output[0] == 1: keys.append('w')
+            if output[1] == 1: keys.append('s')
+            if output[2] == 1: keys.append('a')
+            if output[3] == 1: keys.append('d')
 
-iterations = 50000 * len(x)
-#iterations = 400
+            if not keys == []: self.pressKeys(keys)
 
-with alive_bar(iterations, title="Training!") as bar:
-    for i in range(iterations):
-        output = nn.forward(x[i%len(x)])[0]
-        g = stable_exp(output[1])
-        nn.backward((np.random.normal(output[0], g) - target[i%len(x)]) * 2)
-        bar()
+main = Main()
 
-print("\nFinal Outputs: ")
-for a, i in zip(x, target):
-    print(f"Inputs: {a} AI Output: {nn.forward(a)} Expected Output: {i}")
+trainingThread = threading.Thread(target=main.run)
 
-print(f"Inputs: [3 2 5] AI Output: {nn.forward(np.array([3,2,5]))[0]}")
+trainingThread.start()
+
+run(main.train)

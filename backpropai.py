@@ -17,5 +17,3 @@ if __name__ == '__main__':
             nn.backward(loss_gradient)
             bar()
             iterations -= 1
-    
-    while 1:
