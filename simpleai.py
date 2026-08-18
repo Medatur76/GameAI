@@ -7,12 +7,12 @@ def activation_indenity(x):
 def activation_indenity_derv(x):
     return 1
 def activation_tanh(x):
-    x = np.array(x, dtype=np.float128)
+    x = np.array(x, dtype=np.longdouble)
     return np.divide(np.subtract(np.pow(math.e,x),np.pow(math.e, np.multiply(-1,x))),np.add(np.pow(math.e,x),np.pow(math.e, np.multiply(-1,x))))
 def activation_tanh_derv(x):
     return np.subtract(1,np.pow(activation_tanh(x),2))
 def activation_softplus(x):
-    x = np.array(x, dtype=np.float128)
+    x = np.array(x, dtype=np.longdouble)
     return np.log(np.add(1, np.pow(math.e, x)))
 def activation_softplus_derv(x):
     return np.divide(1, np.add(1, np.pow(math.e,np.multiply(-1, x))))
@@ -70,9 +70,9 @@ if __name__ == '__main__':
             #if not i%500000: training_inputs.append(np.random.randint(1, 400, (2)))
             nn.train()
             #score = np.sum(np.abs(np.subtract(nn.forward(training_inputs), list([sum(i)] for i in training_inputs))))
-            x = np.random.randint(51, size=(2))
+            x = np.random.randint(51, size=2)
             score = abs(nn.forward(x)[0][0] - sum(x))
-            if (score > lastScore): nn.revert()
+            if score > lastScore: nn.revert()
             else: lastScore = score
             bar()
     
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     while 1:
         a = input("First number: ")
-        if (a == "exit"): break
+        if a == "exit": break
         else: num1 = int(a)
         num2 = int(input("Second number: "))
         print(f"Sum: {nn.forward([num1, num2])[0][0]}")
