@@ -1,4 +1,4 @@
-from AI.Training.Inputs import getInputs
+from Trackmania.AI.Training.Inputs import getInputs
 from Library.Activations import Activation
 from Library.NeuralClasses import NeuralNetwork
 import numpy as np
@@ -94,8 +94,14 @@ class Training():
         pydirectinput.typewrite(current, 0.1)
         pydirectinput.press(['down', 'enter', 'enter', 'del'])
         return score
-    def genTrain(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, generations: int=1, ais: int = 1):
-        """Trains the AI by running a number of random neural networks (the ais input times 100) and calculates each of their accumulative reward. It collects the top 5% neural networks, multiplies equally to match the ais number times 100, then slightly modifies each one. This is repeated a number of times based on the generations input. After the last generation is process, the best ai is returned."""
+    def genTrain(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: type[Activation]=Activation, generations: int=1, ais: int = 1):
+        """
+        Trains the AI by running a number of random neural networks (the ais input times 100) and calculates each of their accumulative reward. 
+        It collects the top 5% neural networks, multiplies equally to match the ais number times 100, then slightly modifies each one. 
+        This is repeated a number of times based on the generations input. 
+        After the last generation is process, the best ai is returned.
+        """
+        
         self.isGen = True
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
@@ -118,7 +124,7 @@ class Training():
                     bestNetworks.append(n)
         return bestNetworks[0]
 
-    def train(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: Activation=Activation, runs: int=100):
+    def train(self, n_layers: int=None, output_activations: list[Activation]=None, base_activation: type[Activation]=Activation, runs: int=100):
         """Trains the AI by running a single neural network multiple times (the runs input). Deviates slightly if the reward is greater than the last reward. Will try back propagation to make good adjustments it the reward is good."""
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
@@ -141,43 +147,51 @@ class Training():
                 if (score > lastScore): lastScore = score
                 else: nn.revert()
         return nn
-    def trainPPO(self, n_layers: int, output_activations: list[Activation], coach_output_activation: Activation, base_activation: Activation=Activation, coach_base_activations: Activation=Activation, episodes: int=100):
+    def trainPPO(self, n_layers: int, driver_activation: type[Activation]=Activation, coach_activation: type[Activation]=Activation, episodes: int=100, epotches: int=20):
         """PPO Training for the network."""
         print("Waiting")
         while not getInputs()[1][2]: time.sleep(0.1)
         print("Started!")
         
-        decayFactor = 0.95
+        #decayFactor = 0.95
 
-        driver = NeuralNetwork(16, n_layers, 8, output_activations, base_activation)
-        coach = NeuralNetwork(16, n_layers, 1, [coach_output_activation], coach_base_activations)
+        driver = NeuralNetwork(n_layers, 16, 4, driver_activation)
+        coach = NeuralNetwork(n_layers, 16, 1, coach_activation)
 
         for e in range(episodes):
             episode: list[tuple] = []
-            nextInput, _ = getInputs()
+            nextInput, gameData = getInputs()
             self.startTime = time.time()
             end_time = self.startTime + 20
-            while time.time() < end_time:
-                runTime = time.time() - self.startTime
+            lastSpeed = 0
+            lastZ = gameData[0][2]
+            end = False
+            while time.time() < end_time and not end:
+                #runTime = time.time() - self.startTime
                 score = 0
-                driver.train(0.001)
-                output = driver.forward(nextInput)
-                action = []
-                i = 0
+                state = nextInput
+                outputs = np.clip(driver.forward(nextInput)[0], a_min=1e-7, a_max=1-1e-7)
 
-                for _ in range(4):
-                    action.append(np.random.normal(output[i], np.exp(np.log(output[i+1]))))
-                    i += 2
+                probabilities = 1 / (1 + np.exp(-outputs))
+
+                action = np.asarray(np.random.binomial(
+                    1,
+                    probabilities
+                ), dtype=np.longdouble)
+
+                log_prob = bernoulli_log_prob(
+                    action,
+                    outputs
+                )
 
                 keys = []
-                #Why equals?
-                if action[0] == 1: 
+                if action[0]:
                     keys.append('w')
-                if action[1] == 1: 
+                if action[1]:
                     keys.append('s')
-                if action[2] == 1: 
+                if action[2]:
                     keys.append('a')
-                if action[3] == 1: 
+                if action[3]:
                     keys.append('d')
 
                 if not keys == []: self.pressKeys(keys)
@@ -185,25 +199,108 @@ class Training():
                 time.sleep(0.01)
 
                 nextInput, gameData = getInputs()
+                self.speed = nextInput[15]
 
-                #Score calculations
+                delta_z = gameData[0][2] - lastZ
 
-                score *= decayFactor**(((runTime*100).__round__())/100)
+                if gameData[0][0] > 770 or gameData[0][0] < 643:
+                    if delta_z >= 0:
+                        score += delta_z
+                    else:
+                        score += delta_z * 3
+                else:
+                    if delta_z <= 0:
+                        score -= delta_z
+                    else:
+                        score -= delta_z * 3
+                
+                lastZ = gameData[0][2]
+                
+                if self.speed > lastSpeed:
+                    score += (self.speed - lastSpeed)
+                lastSpeed = self.speed
 
-                episode.append((nextInput, action, score))
+                if gameData[0][1] < 10:
+                    score -= 1000
+                    end = True
+                #score += nextInput[15]
+                #score *= decayFactor**(((runTime*100).__round__())/100)
+
+                episode.append((state, action, score, log_prob))
             pydirectinput.press(['r', 'up', 'up', 'down'])
             time.sleep(0.1)
             pydirectinput.typewrite(f"Ep{e}", 0.1)
             pydirectinput.press(['down', 'enter', 'enter'])
-            for frame in range(len(episode)):
-                state, _, reward = episode[frame]
-                discountedReward = coach.forward(state)
-                for future in range(len(episode) - frame - 1):
-                    reward += episode[future + frame + 1][2]
-                # Coach learning
-                coach.backpropagate(-2(reward-discountedReward))
-                # Driver learning
-                advantage = reward-discountedReward
+            returns = np.zeros(len(episode), dtype=np.longdouble)
 
+            G = np.longdouble(0.0)
+            epsilon = 0.2
+
+            for i in reversed(range(len(episode))):
+                G = episode[i][2] + np.longdouble(0.99) * G
+                returns[i] = G
+            values = np.zeros(len(episode), dtype=np.longdouble)
+
+            for i, frame in enumerate(episode):
+                values[i] = coach.forward(frame[0])[0].item()
+
+            advantages = np.array(returns - values)
+            advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+
+            for _ in range(epotches):
+                for i, frame in enumerate(episode):
+                    coach.backward(2 * (coach.forward(frame[0])[0] - returns[i]))
+                    
+                    state, action, _, old_log_prob = episode[i]
+                    outputs = np.clip(driver.forward(state)[0], a_min=-709-1e-7, a_max=709-1e-7)
+                    probabilities = 1 / (1 + np.exp(-outputs))
+                    new_log_prob = bernoulli_log_prob(action, outputs)
+                    ratio = np.exp(new_log_prob - old_log_prob)
+                    advantage = advantages[i]
+
+                    #something = np.minimum(ratio * advantage,np.clip(ratio, 1 - epsilon, 1 + epsilon, dtype=np.longdouble) * advantage)
+
+                    unclipped = ratio * advantage
+                    clipped = np.clip(ratio, 1 - epsilon, 1 + epsilon) * advantage
+
+                    surrogate_gradient = np.where(
+                        unclipped <= clipped,
+                        unclipped,
+                        0
+                    )
+
+                    actor_gradient = (
+                        -surrogate_gradient
+                        * (action - probabilities)
+                    )
+                
+                    driver.backward(actor_gradient, 1e-2)
+
+                
             pydirectinput.press('del')
         return driver
+
+#AI stuffs
+def bernoulli_log_prob(action, logits):
+    return np.sum(
+        action * -np.logaddexp(0, -logits)
+        + (1 - action) * -np.logaddexp(0, logits)
+    )
+
+# error(x)
+# |  \      ____
+# |   \    /    \
+# |    \__/      |
+# |               \_/
+# ------------------- x
+#        ^         ^
+# local minimum   global minimum
+# minimums are points of low error
+# there are two types; local (smaller minimums that solve the immediate problems)
+# and global (solutions to everything)
+# the gradient points DOWN the slop of error(x) always
+# so if i start at x = 0, and i go down, i end up in the local minimum forever
+# if i start at the middle peak, i go down to the global minimum
+# everything we do in machine learning is to help the AI find the global loss (or error) minimum
+# easiest way: to kick us out of the minimum;: increase the learning rate, the rate at which we descent d the slop
+# we want the ai to overshoot itself out of the minimum

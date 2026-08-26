@@ -3,6 +3,11 @@ from Trackmania.AI.Training.Inputs import *
 from Trackmania.Server.Server import run
 from Library import *
 import pydirectinput, threading, time
+# Source - https://stackoverflow.com/a/30368735
+# Posted by niekas, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-08-25, License - CC BY-SA 4.0
+
+
 
 class Main:
     nextUpKeys: list[str] = []
@@ -42,7 +47,7 @@ class Main:
             elif method == "gen":
                 racer = self.train.genTrain()
             else:
-                racer = self.train.trainPPO(5, episodes=200, epotches=40)
+                racer = self.train.trainPPO(5, episodes=120, epotches=10)
         racer.save()
         print("Saved")
         while not getInputs()[1][2]: time.sleep(0.1)
