@@ -1,8 +1,8 @@
-from AI.Training.Training import *
-from AI.Training.Inputs import *
-from Server.Server import run
+from Trackmania.AI.Training.Training import *
+from Trackmania.AI.Training.Inputs import *
+from Trackmania.Server.Server import run
+from Library import *
 import pydirectinput, threading, time
-import TUI
 
 class Main:
     nextUpKeys: list[str] = []
@@ -41,15 +41,15 @@ class Main:
                 racer = self.train.train()
             elif method == "gen":
                 racer = self.train.genTrain()
-            elif method == "ppo":
-                racer = self.train.trainPPO()
+            else:
+                racer = self.train.trainPPO(5, episodes=200, epotches=40)
         racer.save()
         print("Saved")
         while not getInputs()[1][2]: time.sleep(0.1)
         while getInputs()[1][2] and not getInputs()[1][1]:
             data, _ = getInputs()
 
-            output = racer.forward(data)
+            output = racer.forward(data)[0]
             keys = []
             if output[0] == 1: keys.append('w')
             if output[1] == 1: keys.append('s')

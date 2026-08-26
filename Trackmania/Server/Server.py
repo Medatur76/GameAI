@@ -1,18 +1,14 @@
 import socket, json, time
-from AI.Training.Training import Training
+from Trackmania.AI.Training.Training import Training
 
 def run(training: Training) -> None:
-    # Create a socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Define the host and port
-    host = '127.0.0.1'  # Localhost
-    port = 6161         # You can choose any available port
+    host = '127.0.0.1'
+    port = 6161
 
-    # Bind the socket to the host and port
     server_socket.bind((host, port))
 
-    # Start listening for incoming connections
     server_socket.listen(1)
     print(f"Server listening on {host}:{port}")
 
