@@ -6,9 +6,7 @@ void respond(Net::Socket@ conn)
 {
     PlayerState::sTMData@ TMData = PlayerState::GetRaceData();
     auto PlayerInfo = TMData.dPlayerInfo;
-    float distance = 0.0;
-    if (lastPos == vec3(0.0, 0.0, 0.0)) distance = Math::Sqrt((PlayerInfo.Position.x)**2+(PlayerInfo.Position.y)**2);
-    else distance = Math::Sqrt((PlayerInfo.Position.x-lastPos.x)**2+(PlayerInfo.Position.y-lastPos.y)**2);
+    float distance = Math::Sqrt((PlayerInfo.Position.x-lastPos.x)**2+(PlayerInfo.Position.y-lastPos.y)**2);
     lastPos = PlayerInfo.Position;
     conn.Write("{ \"running\": \"" + running + "\", \"speed\": " + PlayerInfo.Speed + ", \"position\": [" + PlayerInfo.Position.x + ", " + PlayerInfo.Position.y + ", " + PlayerInfo.Position.z + "], \"end\": \"" + TMData.dEventInfo.EndRun + "\" }");
 }
