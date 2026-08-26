@@ -1,4 +1,4 @@
-from AI.GameInfoProcessing.FrameProcessor import takePhoto
+from Trackmania.AI.GameInfoProcessing.FrameProcessor import takePhoto
 import socket, json
 
 def getInputs():
@@ -12,10 +12,5 @@ def getInputs():
     except:
         return [0 for _ in range(16)], [[0.0, 0.0, 0.0], False, False]
     output.append(float(jsonData["speed"]))
-    gameData: list = []
-    gameData.append(jsonData["position"])
-    if (jsonData["end"] == "true"): gameData.append(True)
-    else: gameData.append(False)
-    if (jsonData["running"] == "true"): gameData.append(True)
-    else: gameData.append(False)
+    gameData: list = [jsonData["position"], jsonData["end"] == "true", jsonData["running"] == "true"]
     return output, gameData
