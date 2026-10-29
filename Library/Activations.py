@@ -21,8 +21,7 @@ class Sigmoid(Activation):
         return np.divide(1, np.add(1, np.pow(math.e, np.multiply(-1, x))))
     @staticmethod
     def derivative(x):
-        sig = Sigmoid.forward(x)
-        return np.multiply(sig, np.subtract(1, sig))
+        return np.multiply(x, np.subtract(1, x))
 class HyperbolicTangent(Activation):
     @staticmethod
     def forward(x):
