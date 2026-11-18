@@ -7,7 +7,7 @@ class NeuralLayer:
         self.output = None
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
-        self.weights = np.multiply(np.random.randn(n_inputs, n_outputs), np.sqrt(2.0 / n_inputs), dtype=np.longdouble)
+        self.weights = np.multiply(np.random.randn(n_inputs, n_outputs), np.sqrt(1 / n_inputs), dtype=np.longdouble)
         self.biases = np.zeros((1, n_outputs))
         self.activation = activation
     def forward(self, inputs) -> None:
@@ -44,10 +44,19 @@ class NeuralNetwork:
         return NeuralNetwork()
     def save(self):
         pass
-    def __init__(self, n_layers: int, n_inputs: int, n_outputs: int, activation: type[Activation] = Activation):
-        self.layers: list[NeuralLayer] = []
-        for i in range(n_layers): self.layers.append(NeuralLayer(n_inputs+i*2, n_inputs+(i+1)*2, activation))
-        self.layers.append(NeuralLayer(n_inputs + n_layers * 2, n_outputs, activation))
+    @classmethod
+    def fromOldConst(cls, n_layers: int, n_inputs: int, n_outputs: int, activation: type[Activation] = Activation):
+        layers = []
+        for i in range(n_layers): layers.append(n_inputs+i*2)
+        layers.append(n_outputs)
+        return cls(layers, activation, activation)
+    def __init__(self, layers: list[int], activation: type[Activation] = Activation, final: type[Activation] = Activation):
+            self.layers: list[NeuralLayer] = []
+            for i, c in enumerate(layers):
+                if i == (len(layers)-2): 
+                    break
+                self.layers.append(NeuralLayer(c, layers[i + 1], activation))
+            self.layers.append(NeuralLayer(layers[len(layers) - 2], layers[len(layers) - 1], final))
     def forward(self, inputs):
         self.layers[0].forward(inputs)
         for i in range(len(self.layers)-1): self.layers[i+1].forward(self.layers[i].output)
