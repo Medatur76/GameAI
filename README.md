@@ -27,19 +27,17 @@ Requirements:
 
 1. Trackmania 2020 & Open Planet
 2. Acces to developer mode on Open Planet
-3. Python >= 3.11.9 installed
+3. GNU G++
 
 Setup:
 
-1. Download the [Trackmania](/Trackmania) and [Library](/Library) folders
-2. Move the Plugin folder into the Open Planet Plugins folder.
-3. run ``py -m pip install numpy pydirectinput opencv-python pyautogui pywinctl alive-progress --upgrade``
+...
 
 Instructions:
 
 1. Run Trackmania, set Open Planet to Developer mode.
 2. Load up your training track
-3. Run the Trackmania module (``py -m Trackmania``)
+3. Run the ....
 4. Put the car in fist person view (where the camera is placed right before the front of the car)
 5. Press J and watch the training
 
