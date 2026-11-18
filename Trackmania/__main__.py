@@ -47,7 +47,7 @@ class Main:
             elif method == "gen":
                 racer = self.train.genTrain()
             else:
-                racer = self.train.trainPPO(5, episodes=120, epotches=10)
+                racer = self.train.trainPPO(5, episodes=120, epotches=500)
         racer.save()
         print("Saved")
         while not getInputs()[1][2]: time.sleep(0.1)

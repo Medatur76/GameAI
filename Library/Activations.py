@@ -28,7 +28,7 @@ class HyperbolicTangent(Activation):
         return np.divide(np.subtract(np.pow(math.e,x),np.pow(math.e,np.negative(x))), np.add(np.pow(math.e,x), np.pow(math.e,np.negative(x))))
     @staticmethod
     def derivative(x):
-        return np.subtract(1, np.pow(HyperbolicTangent.forward(x), 2))
+        return np.subtract(1, np.pow(x, 2))
 #Might work but im not sure
 class BinaryStep(Activation):
     @staticmethod

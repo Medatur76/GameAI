@@ -155,8 +155,8 @@ class Training():
         
         #decayFactor = 0.95
 
-        driver = NeuralNetwork(n_layers, 16, 4, driver_activation)
-        coach = NeuralNetwork(n_layers, 16, 1, coach_activation)
+        driver = NeuralNetwork.fromOldConst(n_layers, 16, 4, driver_activation)
+        coach = NeuralNetwork.fromOldConst(n_layers, 16, 1, coach_activation)
 
         for e in range(episodes):
             episode: list[tuple] = []
@@ -201,7 +201,7 @@ class Training():
                 nextInput, gameData = getInputs()
                 self.speed = nextInput[15]
 
-                delta_z = gameData[0][2] - lastZ
+                delta_z = (gameData[0][2] - lastZ) / 5
 
                 if gameData[0][0] > 770 or gameData[0][0] < 643:
                     if delta_z >= 0:
@@ -221,7 +221,7 @@ class Training():
                 lastSpeed = self.speed
 
                 if gameData[0][1] < 10:
-                    score -= 1000
+                    score -= 50
                     end = True
                 #score += nextInput[15]
                 #score *= decayFactor**(((runTime*100).__round__())/100)
@@ -247,18 +247,25 @@ class Training():
             advantages = np.array(returns - values)
             advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-            for _ in range(epotches):
-                for i, frame in enumerate(episode):
-                    coach.backward(2 * (coach.forward(frame[0])[0] - returns[i]))
+            for e in range(epotches):
+                for i, frame in enumerate(reversed(episode)):
+
+                    prediction = coach.forward(frame[0])[0]
+                    error = 2 * (prediction - returns[i])
+
+                    if not np.all(np.isfinite(prediction)) or not np.all(np.isfinite(error)):
+                        raise FloatingPointError(
+                            f"Invalid critic update: e={e} i={i} data={frame[0]} prediction={prediction}, return={returns[i]}"
+                        )
+
+                    coach.backward(error, 3e-6)
                     
                     state, action, _, old_log_prob = episode[i]
-                    outputs = np.clip(driver.forward(state)[0], a_min=-709-1e-7, a_max=709-1e-7)
+                    outputs = np.clip(driver.forward(state)[0], a_min=-709+1e-7, a_max=709-1e-7)
                     probabilities = 1 / (1 + np.exp(-outputs))
                     new_log_prob = bernoulli_log_prob(action, outputs)
                     ratio = np.exp(new_log_prob - old_log_prob)
                     advantage = advantages[i]
-
-                    #something = np.minimum(ratio * advantage,np.clip(ratio, 1 - epsilon, 1 + epsilon, dtype=np.longdouble) * advantage)
 
                     unclipped = ratio * advantage
                     clipped = np.clip(ratio, 1 - epsilon, 1 + epsilon) * advantage
@@ -274,7 +281,7 @@ class Training():
                         * (action - probabilities)
                     )
                 
-                    driver.backward(actor_gradient, 1e-2)
+                    driver.backward(actor_gradient, 3e-4)
 
                 
             pydirectinput.press('del')

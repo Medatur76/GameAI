@@ -4,29 +4,23 @@ import Library.Activations as Activations
 import numpy as np
 
 if __name__ == '__main__':
-    nn = NeuralNetwork(4, 2, 1, Activations.Activation)
-    iterations = 1000000
+    nn = NeuralNetwork([1, 16, 16, 1], Activations.Sigmoid)
+    iterations = 2000000
 
-    x = [
-        [1, 2],
-        [2, 1],
-        [3, 4],
-        [4, 3],
-        [5, 6],
-        [10, 10],
-        [39, 5]
-    ]
+    rng = np.random.default_rng()
 
-    Y = list(map(lambda j: j[0] + j[1], x))
+    x = rng.random(size=(40, 1)) * np.pi
+
+    Y = np.sin(x)
 
     with alive_bar(iterations, title="Training!") as bar:
         for i in range(iterations):
             output = nn.forward(x[i%len(x)])[0][0]
-            loss_gradient = 2 * (output - Y[i%len(x)])  # Derivative of MSE loss
-            nn.backward(loss_gradient)
+            loss_gradient = 2 * (output - Y[i%len(x)][0])  # Derivative of MSE loss
+            nn.backward(loss_gradient, 1e-4)
             bar()
-    for inputs in x:
-        print(f"Input: {inputs} Output: {nn.forward(inputs)[0][0]} Expected: {sum(inputs)}")
+    for i, inputs in enumerate(x):
+        print(f"Input: {inputs} Output: {nn.forward(inputs)[0][0]} Expected: {Y[i][0]}")
     print(
         f"Final score: {np.sum(np.abs(np.subtract(nn.forward(x), Y)))}")
 
@@ -35,6 +29,6 @@ if __name__ == '__main__':
         if a == "exit":
             break
         else:
-            num1 = int(a)
-        num2 = int(input("Second number: "))
-        print(f"Sum: {nn.forward([num1, num2])}")
+            num1 = float(a)
+        #num2 = int(input("Second number: "))
+        print(f"Sum: {nn.forward([num1])}")
